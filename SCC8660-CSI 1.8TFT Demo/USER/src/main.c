@@ -83,10 +83,10 @@ void MyInit()
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
     qtimer_quad_init(QTIMER_2,QTIMER2_TIMER0_C3,QTIMER2_TIMER3_C25);
     qtimer_quad_init(QTIMER_3,QTIMER3_TIMER2_B18,QTIMER3_TIMER3_B19);
-    MotorInit(LeftForwordMotor,,);
-    MotorInit(LeftBackwordMotor,,);
-    MotorInit(RightForwordMotor,,);
-    MotorInit(RightBackwordMotor,,);//电机初始化
+    //MotorInit(&LeftForwordMotor,PWM2_MODULE3_CHA_D2,PWM2_MODULE3_CHB_D3,50);
+    //MotorInit(&LeftBackwordMotor,PWM1_MODULE3_CHA_D0,PWM1_MODULE3_CHB_D1,50);
+    //MotorInit(&RightForwordMotor,PWM1_MODULE1_CHA_D14,PWM1_MODULE1_CHB_D15,50);
+    //MotorInit(&RightBackwordMotor,PWM1_MODULE0_CHA_D12,PWM1_MODULE0_CHB_D13,50);//电机初始化
     /*DirControllerInit(dircontroller,LeftForwordMotor,LeftBackwordMotor,
       RightForwordMotor,RightBackwordMotor);//控制器初始化*/
     //如果使用主板，一直卡在while(!uart_receive_flag)，请检查是否电池连接OK?
