@@ -35,7 +35,7 @@ int			temp7;
 int			clearCount = 0;
 int                     start=0;
 int WaveForm[TFT_X_MAX];//波形
-
+double Scale=10;//波形放大比例
 void menu(); //总函数
 void InitKey();//初始化按键
 void dispimage(int which_image);//图像显示函数
@@ -76,6 +76,13 @@ void menu()
 }
 void ScopeGetSampleValue(int SampleValue)
 {
+  if(SampleValue<0)
+    SampleValue=0;
+  double temp;
+  if(SampleValue>0)
+    temp=TFT_X_MAX/SampleValue;
+  if(temp<Scale)
+    Scale=temp;
   static int NextMoment=0;
   if(NextMoment==TFT_X_MAX)
   {
@@ -93,12 +100,12 @@ void ScopeGetSampleValue(int SampleValue)
 }
 void ScopeDraw(int SetValue)
 {
+  SetValue=(int)SetValue*Scale;
   SetValue=SetValue>TFT_Y_MAX-1?TFT_Y_MAX-1:SetValue;
   for(int i=0;i<TFT_X_MAX;i++)
   {
-    lcd_drawpoint(i,SetValue,BLACK);
-    lcd_drawpoint(i,WaveForm[i],BLACK);
-    
+    lcd_drawpoint(i,TFT_Y_MAX-1-SetValue,BLACK);
+    lcd_drawpoint(i,TFT_Y_MAX-1-WaveForm[i]*Scale,BLACK);
   }
 }
 void Menu1_Show()
