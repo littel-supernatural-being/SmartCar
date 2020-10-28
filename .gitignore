@@ -11,3 +11,5 @@ SCC8660-CSI 1.8TFT Demo/IAR/program
 *.pdw
 *.pdi
 *.wsdt
+*.zip
+zf
