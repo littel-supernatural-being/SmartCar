@@ -34,6 +34,8 @@ int			temp6;
 int			temp7;
 int			clearCount = 0;
 int                     start=0;
+int WaveForm[TFT_X_MAX];//波形
+
 void menu(); //总函数
 void InitKey();//初始化按键
 void dispimage(int which_image);//图像显示函数
@@ -43,7 +45,8 @@ void Menu1_Show();//第一个调参页不可修改量
 void Menu2_Show();//第二个调参页可修改量
 void FlashValueOperate();//更改变量
 void SignMove();//上翻下翻
-
+void ScopeDraw(int SetValue);
+void ScopeGetSampleValue(int SampleValue);
 
 void menu()
 {
@@ -59,7 +62,7 @@ void menu()
   if(page==2)
     //dispimage(BIN_IMAGE);
   if(page==3)
-    //dispimage(LINE);
+    ScopeDraw(LeftForwordMotor.SetPoint);
   if(page==4)
     Menu1_Show();
   else if ( page == 5 )
@@ -68,6 +71,33 @@ void menu()
   keyState = keyCheck();
   SignMove();
   FlashValueOperate();    
+}
+void ScopeGetSampleValue(int SampleValue)
+{
+  static int NextMoment=0;
+  if(NextMoment==TFT_X_MAX)
+  {
+    for(int i=0;i<TFT_X_MAX;i++)
+      WaveForm[i]=0;
+    NextMoment=0;
+    lcd_clear(WHITE);
+  }
+  else
+  {
+    WaveForm[NextMoment]=(SampleValue>TFT_Y_MAX-1?TFT_Y_MAX-1:SampleValue);
+    WaveForm[NextMoment]=(SampleValue>=0?SampleValue:0);
+    NextMoment++;
+  }
+}
+void ScopeDraw(int SetValue)
+{
+  SetValue=SetValue>TFT_Y_MAX-1?TFT_Y_MAX-1:SetValue;
+  for(int i=0;i<TFT_X_MAX;i++)
+  {
+    lcd_drawpoint(i,SetValue,BLACK);
+    lcd_drawpoint(i,WaveForm[i],BLACK);
+    
+  }
 }
 void Menu1_Show()
 {       

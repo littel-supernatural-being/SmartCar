@@ -5,3 +5,4 @@ Using for Robot competition
 左后轮  D1          D0         C1
 右前轮  D15         D14        B18
 右后轮  D3          D2         C2
+光电管 B14 B15 B21 B23

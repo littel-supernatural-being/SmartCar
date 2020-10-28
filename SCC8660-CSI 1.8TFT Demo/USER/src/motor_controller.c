@@ -1,5 +1,5 @@
 #include "motor_controller.h"
-const int MotorKP=0;
+const int MotorKP=20;
 const int MotorKI=0;
 const int MotorKD=0;
 const int DirKP=0;
@@ -9,10 +9,12 @@ struct MotorController LeftForwordMotor;
 struct MotorController LeftBackwordMotor;
 struct MotorController RightForwordMotor;
 struct MotorController RightBackwordMotor;
+struct DirController dircontroller;
 int LeftForwordMotorSpeed=0;
 int LeftBackwordMotorSpeed=0;
 int RightForwordMotorSpeed=0;
 int RightBackwordMotorSpeed=0;//编码器所得值
+
 
 void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed)//电机初始化
 {
@@ -71,7 +73,7 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
   Dir->LastError=Dir->Error;
   Dir->Error=Dir->SetPoint-MeasureValue;
   Dir->decrement+=Dir->KP*Dir->Error+Dir->KD*(Dir->Error-Dir->LastError);
-  int LeftSpeed=MotorGetSetSpeed(Dir->LeftForwordMotor);
+  int LeftSpeed=MotorGetSetSpeed(Dir->LeftForwordMotor);//调速是左边速度不变改右边速度
   MotorSetSpeed(Dir->RightForwordMotor,LeftSpeed+Dir->decrement);
   MotorSetSpeed(Dir->RightBackwordMotor,LeftSpeed+Dir->decrement);
 }

@@ -42,6 +42,7 @@ extern void flashDataSave();
 extern void flashDataRead();
 extern void show_line();
 extern void InitKey();
+extern void ScopeGetSampleValue(int SampleValue);
 
 
 

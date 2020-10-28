@@ -20,7 +20,7 @@
 #include "headfile.h"
 #include "isr.h"
 
-
+int count=0;
 void CSI_IRQHandler(void)
 {
     CSI_DriverIRQHandler();     //调用SDK自带的中断函数 这个函数最后会调用我们设置的回调函数
@@ -37,6 +37,10 @@ void PIT_IRQHandler(void)
     
     if(PIT_FLAG_GET(PIT_CH1))
     {
+        UpdateMotorSpeed();//更新编码器速度值
+        //DirErrorUpdata(&dircontroller);//进行方向控制
+        MotorErrorUpdataAll();//进行电机调速
+        ScopeGetSampleValue(LeftForwordMotorSpeed);
         PIT_FLAG_CLEAR(PIT_CH1);
     }
     

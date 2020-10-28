@@ -53,25 +53,14 @@ int main(void)
     EnableGlobalIRQ(0);
     while(1)
     {
-       int key=0;
-       if(!gpio_get(C31))
-         key=1;
-       if(!gpio_get(C27))
-         key=2;
-       if(!gpio_get(C26))
-         key=3;
-       if(!gpio_get(C4))
-         key=4;
-       //menu();
-       //MotorErrorUpdataAll();
-        /*if(scc8660_csi_finish_flag)		//图像采集完成
-        {
-			scc8660_csi_finish_flag = 0;	//清除采集完成标志位
-			
-			//使用缩放显示函数，根据原始图像大小 以及设置需要显示的大小自动进行缩放或者放大显示
-			//本例程默认采集分辨率为160*120，显示分辨率为160*128，纵向拉伸全屏
-            lcd_displayimage8660_zoom(scc8660_csi_image[0],SCC8660_CSI_PIC_W,SCC8660_CSI_PIC_H,160,128);
-        }*/
+       menu();
+       if(scc8660_csi_finish_flag)		//图像采集完成
+       {
+         scc8660_csi_finish_flag = 0;	//清除采集完成标志位
+         //使用缩放显示函数，根据原始图像大小 以及设置需要显示的大小自动进行缩放或者放大显示
+         //本例程默认采集分辨率为160*120，显示分辨率为160*128，纵向拉伸全屏
+         lcd_displayimage8660_zoom(scc8660_csi_image[0],SCC8660_CSI_PIC_W,SCC8660_CSI_PIC_H,160,128);
+        }
         
     }
 }
@@ -83,24 +72,29 @@ void MyInit()
     //显示模式设置为3  横屏模式
     //显示模式在SEEKFREE_18TFT.h文件内的TFT_DISPLAY_DIR宏定义设置
     lcd_init();     	//初始化TFT屏幕
-    
+    pit_init();
+    pit_interrupt_ms(PIT_CH1,500);//用PIT一号端口设置0.5ms的中断
     //如果屏幕没有任何显示，请检查屏幕接线
     lcd_showstr(0,0,"SEEKFREE SCC8660");
     lcd_showstr(0,1,"Initializing...");
-    scc8660_csi_init();	//初始化摄像头 使用CSI接口
-    InitKey();//初始化按键
-    qtimer_quad_init(QTIMER_1,QTIMER1_TIMER0_C0,QTIMER1_TIMER1_C1);
-    qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
-    qtimer_quad_init(QTIMER_2,QTIMER2_TIMER0_C3,QTIMER2_TIMER3_C25);
-    qtimer_quad_init(QTIMER_3,QTIMER3_TIMER2_B18,QTIMER3_TIMER3_B19);
-    //MotorInit(&LeftForwordMotor,PWM2_MODULE3_CHA_D2,PWM2_MODULE3_CHB_D3,50);
-    //MotorInit(&LeftBackwordMotor,PWM1_MODULE3_CHA_D0,PWM1_MODULE3_CHB_D1,50);
-    //MotorInit(&RightForwordMotor,PWM1_MODULE1_CHA_D14,PWM1_MODULE1_CHB_D15,50);
-    //MotorInit(&RightBackwordMotor,PWM1_MODULE0_CHA_D12,PWM1_MODULE0_CHB_D13,50);//电机初始化
-    /*DirControllerInit(dircontroller,LeftForwordMotor,LeftBackwordMotor,
-      RightForwordMotor,RightBackwordMotor);//控制器初始化*/
+    scc8660_csi_init();	//初始化摄像头 使用CSI接口 
     //如果使用主板，一直卡在while(!uart_receive_flag)，请检查是否电池连接OK?
     //如果图像只采集一次，请检查场信号(VSY)是否连接OK?
+    InitKey();//初始化按键
+    //左前轮
+    MotorInit(&LeftForwordMotor,PWM1_MODULE0_CHB_D13,PWM1_MODULE0_CHA_D12,10);
+    qtimer_quad_init(QTIMER_2,QTIMER2_TIMER0_C3,QTIMER2_TIMER3_C25);
+    //左后轮
+    MotorInit(&LeftBackwordMotor,PWM1_MODULE3_CHB_D1,PWM1_MODULE3_CHA_D0,10);
+    qtimer_quad_init(QTIMER_1,QTIMER1_TIMER0_C0,QTIMER1_TIMER1_C1);
+    //右前轮
+    MotorInit(&RightForwordMotor,PWM1_MODULE1_CHB_D15,PWM1_MODULE1_CHA_D14,10);
+    qtimer_quad_init(QTIMER_3,QTIMER3_TIMER2_B18,QTIMER3_TIMER3_B19);
+    //右后轮
+    MotorInit(&RightBackwordMotor,PWM2_MODULE3_CHB_D3,PWM2_MODULE3_CHA_D2,10);//电机初始化
+    qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
+     DirControllerInit(&dircontroller,&LeftForwordMotor,&LeftBackwordMotor,
+      &RightForwordMotor,&RightBackwordMotor);//控制器初始化*/
 }
 
 

@@ -43,6 +43,7 @@ extern int LeftBackwordMotorSpeed;
 extern int RightForwordMotorSpeed;
 extern int RightBackwordMotorSpeed;//编码器所得值
 extern struct DirController dircontroller;
+
 int GetMotorSpeed(int Which);
 void UpdateMotorSpeed();//根据编码器号获得编码值放在中断函数中或者循环中
 void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed);//电机初始化
