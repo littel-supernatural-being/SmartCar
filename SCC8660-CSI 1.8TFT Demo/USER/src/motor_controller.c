@@ -49,7 +49,8 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
     return;
   else if(Which->result>=50000)
     Which->result=49000;
-    pwm_duty(Which->ForwordPWMPort,Which->result);
+    //pwm_duty(Which->ForwordPWMPort,Which->result);
+  pwm_duty(Which->ForwordPWMPort,14000);
 }
 void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
   struct MotorController *RFMotor,struct MotorController *RBMotor)
@@ -79,14 +80,18 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
 }
 void UpdateMotorSpeed()//根据编码器号获得编码值放在中断函数中或者循环中
 {
-  LeftForwordMotorSpeed=qtimer_quad_get(QTIMER_1,QTIMER1_TIMER0_C0);
-  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER0_C0);
-  LeftBackwordMotorSpeed=qtimer_quad_get(QTIMER_1,QTIMER1_TIMER2_C2);
-  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER2_C2);
-  RightForwordMotorSpeed=qtimer_quad_get(QTIMER_2,QTIMER2_TIMER0_C3);
+  //左前轮
+  LeftForwordMotorSpeed=qtimer_quad_get(QTIMER_2,QTIMER2_TIMER0_C3);
   qtimer_quad_clear(QTIMER_2,QTIMER2_TIMER0_C3);
-  RightBackwordMotorSpeed=qtimer_quad_get(QTIMER_3,QTIMER3_TIMER2_B18);
+  //左后轮
+  LeftBackwordMotorSpeed=-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER1_C1);
+  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER1_C1);
+  //右前轮
+  RightForwordMotorSpeed=-qtimer_quad_get(QTIMER_3,QTIMER3_TIMER2_B18);
   qtimer_quad_clear(QTIMER_3,QTIMER3_TIMER2_B18);
+  //右后轮
+  RightBackwordMotorSpeed=-qtimer_quad_get(QTIMER_3,QTIMER1_TIMER2_C2);
+  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER2_C2);
 }
 int GetMotorSpeed(int Which)
 {

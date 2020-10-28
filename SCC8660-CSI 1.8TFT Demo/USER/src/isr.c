@@ -39,8 +39,8 @@ void PIT_IRQHandler(void)
     {
         UpdateMotorSpeed();//更新编码器速度值
         //DirErrorUpdata(&dircontroller);//进行方向控制
-        MotorErrorUpdataAll();//进行电机调速
-        ScopeGetSampleValue(LeftForwordMotorSpeed);
+        //MotorErrorUpdataAll();//进行电机调速
+        //ScopeGetSampleValue(LeftForwordMotorSpeed);
         PIT_FLAG_CLEAR(PIT_CH1);
     }
     

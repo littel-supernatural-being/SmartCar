@@ -59,8 +59,10 @@ void menu()
     ++clearCount;
   if ( page == 1)
   //dispimage(CSI_IMAGE);
+    ;
   if(page==2)
     //dispimage(BIN_IMAGE);
+    ;
   if(page==3)
     ScopeDraw(LeftForwordMotor.SetPoint);
   if(page==4)
@@ -119,7 +121,7 @@ void Menu2_Show()
 	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], TempValue4);         
 	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], TempValue5);         
         lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], TempValue6);         
-	lcd_showstr( 20, row_pos[6], "LastError");      lcd_showint16( 100, row_pos[6], TempValue7);         
+	lcd_showstr( 20, row_pos[6], "Result");      lcd_showint16( 100, row_pos[6], TempValue7);         
 }
 
 

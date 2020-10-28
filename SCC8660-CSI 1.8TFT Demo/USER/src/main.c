@@ -54,13 +54,17 @@ int main(void)
     while(1)
     {
        menu();
-       if(scc8660_csi_finish_flag)		//图像采集完成
+       pwm_duty(LeftForwordMotor.ForwordPWMPort,14000);
+       pwm_duty(LeftBackwordMotor.ForwordPWMPort,14000);
+       pwm_duty(RightForwordMotor.ForwordPWMPort,14000);
+       pwm_duty(RightBackwordMotor.ForwordPWMPort,14000);
+       /*if(scc8660_csi_finish_flag)		//图像采集完成
        {
          scc8660_csi_finish_flag = 0;	//清除采集完成标志位
          //使用缩放显示函数，根据原始图像大小 以及设置需要显示的大小自动进行缩放或者放大显示
          //本例程默认采集分辨率为160*120，显示分辨率为160*128，纵向拉伸全屏
          lcd_displayimage8660_zoom(scc8660_csi_image[0],SCC8660_CSI_PIC_W,SCC8660_CSI_PIC_H,160,128);
-        }
+        }*/
         
     }
 }
@@ -82,7 +86,7 @@ void MyInit()
     //如果图像只采集一次，请检查场信号(VSY)是否连接OK?
     InitKey();//初始化按键
     //左前轮
-    MotorInit(&LeftForwordMotor,PWM1_MODULE0_CHB_D13,PWM1_MODULE0_CHA_D12,10);
+    MotorInit(&LeftForwordMotor,PWM1_MODULE0_CHA_D12,PWM1_MODULE0_CHB_D13,10);
     qtimer_quad_init(QTIMER_2,QTIMER2_TIMER0_C3,QTIMER2_TIMER3_C25);
     //左后轮
     MotorInit(&LeftBackwordMotor,PWM1_MODULE3_CHB_D1,PWM1_MODULE3_CHA_D0,10);
