@@ -53,8 +53,17 @@ int main(void)
     EnableGlobalIRQ(0);
     while(1)
     {
-       menu();
-       MotorErrorUpdataAll();
+       int key=0;
+       if(!gpio_get(C31))
+         key=1;
+       if(!gpio_get(C27))
+         key=2;
+       if(!gpio_get(C26))
+         key=3;
+       if(!gpio_get(C4))
+         key=4;
+       //menu();
+       //MotorErrorUpdataAll();
         /*if(scc8660_csi_finish_flag)		//图像采集完成
         {
 			scc8660_csi_finish_flag = 0;	//清除采集完成标志位
@@ -79,6 +88,7 @@ void MyInit()
     lcd_showstr(0,0,"SEEKFREE SCC8660");
     lcd_showstr(0,1,"Initializing...");
     scc8660_csi_init();	//初始化摄像头 使用CSI接口
+    InitKey();//初始化按键
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER0_C0,QTIMER1_TIMER1_C1);
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
     qtimer_quad_init(QTIMER_2,QTIMER2_TIMER0_C3,QTIMER2_TIMER3_C25);

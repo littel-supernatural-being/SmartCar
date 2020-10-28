@@ -1,21 +1,28 @@
 #include "gui.h"
-#define para_1 LeftForwordMotorSpeed
-#define para_2 LeftBackwordMotorSpeed
-#define para_3 RightForwordMotorSpeed
-#define para_4 RightBackwordMotorSpeed
-#define para_5 LeftForwordMotor.SetPoint
-#define para_6 LeftForwordMotor.Error
-#define para_7 LeftForwordMotor.result
+#define para1_1 LeftForwordMotorSpeed
+#define para1_2 LeftBackwordMotorSpeed
+#define para1_3 RightForwordMotorSpeed
+#define para1_4 RightBackwordMotorSpeed
+#define para1_5 LeftForwordMotor.SetPoint
+#define para1_6 LeftForwordMotor.Error
+#define para1_7 LeftForwordMotor.result  //%menu1中参数
 
 
+#define para2_1 LeftForwordMotorSpeed
+#define para2_2 LeftBackwordMotorSpeed
+#define para2_3 RightForwordMotorSpeed
+#define para2_4 RightBackwordMotorSpeed
+#define para2_5 LeftForwordMotor.SetPoint
+#define para2_6 LeftForwordMotor.Error
+#define para2_7 LeftForwordMotor.result//%menu2中参数
 
 
-int  Value1=0,Value5=0, Value6=0,Value7=0;
-int Value2=0,Value3=0,Value4=0;
-uint8			page		= 1;    /* 初始为第一页 */
+int  TempValue1=0,TempValue5=0, TempValue6=0,TempValue7=0;
+int  TempValue2=0,TempValue3=0, TempValue4=0;
+uint8			page		= 5;    /* 初始为第一页 */
 int			menuRow		= 1;    /* 记录当前是第几排 值可以为1、2、3、4、5  修改了排数的除外 */
 int			keyState	= 0;    /* 用于记录五项开关的值 */
-const unsigned char	row_pos[7]	= { 0, 1, 2, 3, 4, 5,6};
+const unsigned char	row_pos[7]	= { 0, 1, 2, 3, 4, 5, 6};
 int			key_counter	= 0;
 int			key_temp	= 0;
 int			temp1;
@@ -27,45 +34,150 @@ int			temp6;
 int			temp7;
 int			clearCount = 0;
 int                     start=0;
-void menu();
-void dispimage(int which_image);
-void Menu1Show();
+void menu(); //总函数
+void InitKey();//初始化按键
+void dispimage(int which_image);//图像显示函数
+void UpdateTemp2Value();//临时量Temp->真实量Value
+void UpdateValue2Temp();//真实量Value->临时量Temp
+void Menu1_Show();//第一个调参页不可修改量
+void Menu2_Show();//第二个调参页可修改量
+void FlashValueOperate();//更改变量
+void SignMove();//上翻下翻
+
+
 void menu()
 {
-	if ( clearCount == 20 )//每20帧刷新一次
-	{
-		clearCount = 0;
-		if ( page != 1 )
-		{
-			lcd_clear(WHITE);
-		}
-	}
-        else
-        ++clearCount;
+  if ( clearCount == 20 )//每20帧刷新一次
+  {
+    clearCount = 0;
+    lcd_clear(WHITE);
+  }
+  else
+    ++clearCount;
+  if ( page == 1)
+  //dispimage(CSI_IMAGE);
+  if(page==2)
+    //dispimage(BIN_IMAGE);
+  if(page==3)
+    //dispimage(LINE);
+  if(page==4)
+    Menu1_Show();
+  else if ( page == 5 )
+    Menu2_Show();
+  
+  keyState = keyCheck();
+  SignMove();
+  FlashValueOperate();    
+}
+void Menu1_Show()
+{       
+        lcd_showstr(0,row_pos[menuRow-1],"*");
+	lcd_showstr( 20, row_pos[0], "LFS");            lcd_showint16( 100, row_pos[0], para1_1);        
+	lcd_showstr( 20, row_pos[1], "LBS");            lcd_showint16( 100, row_pos[1], para1_2);         
+	lcd_showstr( 20, row_pos[2], "RFS");            lcd_showint16( 100, row_pos[2], para1_3);        
+	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], para1_4);         
+	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], para1_5);         
+        lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], para1_6);         
+	lcd_showstr( 20, row_pos[6], "LastError");      lcd_showint16( 100, row_pos[6], para1_7);        
+}
+void Menu2_Show()
+{       
+        lcd_showstr(0,row_pos[menuRow-1],"*");
+	lcd_showstr( 20, row_pos[0], "LFS");            lcd_showint16( 100, row_pos[0], TempValue1);         
+	lcd_showstr( 20, row_pos[1], "LBS");            lcd_showint16( 100, row_pos[1], TempValue2);       
+	lcd_showstr( 20, row_pos[2], "RFS");            lcd_showint16( 100, row_pos[2], TempValue3);        
+	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], TempValue4);         
+	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], TempValue5);         
+        lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], TempValue6);         
+	lcd_showstr( 20, row_pos[6], "LastError");      lcd_showint16( 100, row_pos[6], TempValue7);         
+}
 
-    
-	if ( page == 1 )
-	{       
-          Menu1Show();
-		//dispimage(CSI_IMAGE);
-	}
-        if(page==2)
-        {
-               //dispimage(BIN_IMAGE);
-        }
-        if(page==3)
-        {
-               //lcd_showuint8(0,0,road_type);
-        }
-        if(page==4)
-        {
-               //dispimage(LINE);
-        }
-        else if ( page == 5 )
-	{
+
+void FlashValueOperate()
+{
+	/* 修改每个变量的值 */
+  if ( keyState != KeyNone )
+    lcd_clear(WHITE);
+  else
+    return ;
+  if ( page == 5 )//如果是第五页则可以修改参数
+  {
+    if(keyState==KeyConfirm)
+    {
+      UpdateTemp2Value();
+      return;
+    }
+    switch ( menuRow )      /* 判断行数 */
+    {                       
+      case 0: 
+      {
+          /* 没有第零行 */
+      } 
+      break;
+        
+      case 1: 
+      {
+        if ( keyState == KeyLeft )
+          TempValue1--;
+        else if ( keyState == KeyRight)
+          TempValue1++;
+      } 
+      break;
+      case 2: 
+      {
+        if ( keyState == KeyLeft )
+          TempValue2--;
+        else if ( keyState == KeyRight)
+          TempValue2++;
+      } 
+      break;
                 
-		//MenuShow2();
-         }
+      case 3: 
+      {
+        if ( keyState == KeyLeft )
+          TempValue3--;
+        else if ( keyState == KeyRight)
+          TempValue3++;
+      } 
+      break;
+    
+      case 4: 
+      {
+        if ( keyState == KeyLeft )
+          TempValue4--;
+        else if ( keyState == KeyRight)
+          TempValue4++;
+      } 
+      break;
+                
+      case 5: 
+      {
+        if ( keyState == KeyLeft )
+          TempValue5--;
+        else if ( keyState == KeyRight)
+          TempValue5++;
+      } 
+      break;
+              
+      case 6: 
+      {
+        if ( keyState == KeyLeft )
+          TempValue6--;
+        else if ( keyState == KeyRight)
+          TempValue6++;
+      } 
+      break;
+              
+      case 7: 
+      {
+        if ( keyState == KeyLeft )
+          TempValue7--;
+        else if ( keyState == KeyRight)
+          TempValue7++;
+      } 
+      break;
+    }
+  }
 }
 
 /*void dispimage(int which_image)
@@ -118,16 +230,133 @@ void menu()
       }
 }*/
 
+void SignMove()
+{
+  if (keyState == KeyUp)
+  {
+    
+    if ( menuRow == 1 )
+    {
+      if ( page == 2||page==3) //展示图片       /* 第二页第一行按上键 */
+      {
+        page = page-1;
+        lcd_clear(WHITE);
+      }
+      else if ( page == 1 )  /* 第一页翻到最后一页 */
+      {
+        page = pageMax;
+        lcd_clear(WHITE);
+        menuRow = 7;
+      }
+      else 
+      {
+        page = page - 1;
+        lcd_clear(WHITE);
+        menuRow = 7;
+      }
+    }
+    else 
+      --menuRow;
+  }
+  else if ( keyState == KeyDown )
+  {
+    if ( page == 1||page==2||page==3 )                                                        /* 第一页按下键 */
+    {
+      page= page+1;
+      menuRow = 1;
+      lcd_clear(WHITE);
+    }
+    else if ( menuRow == 7 )                                               /* 最后一行按下键 */
+    {
+      if ( page == pageMax )
+      {
+        page	= 1;
+        menuRow = 1;
+        lcd_clear(WHITE);
+      }
+      else 
+      {
+	page	= page + 1;
+	menuRow = 1;
+	lcd_clear(WHITE);
+      }
+    }
+    else 
+    {                                                                         
+      lcd_clear(WHITE);
+      menuRow = menuRow + 1;
+    }
+  }    
+}
 
 
-void Menu1Show()
-{       
-        lcd_showstr(0,row_pos[menuRow-1],"*");
-	lcd_showstr( 20, row_pos[0], "LFS");  lcd_showint16( 100, row_pos[0], Value1);         /* OLED_ShowString_1206(72,row_pos[0],"value1",1); 显示不了浮点数，但是类型是浮点数类型，所以现实的时候还是要进行处理 */
-	lcd_showstr( 20, row_pos[1], "LBS");  lcd_showint16( 100, row_pos[1], Value2);         /* OLED_ShowString_1206(72,row_pos[1],"value2",1); */
-	lcd_showstr( 20, row_pos[2], "RFS");  lcd_showint16( 100, row_pos[2], Value3);         /* OLED_ShowString_1206(72,row_pos[2],"value3",1); */
-	lcd_showstr( 20, row_pos[3], "RBS");  lcd_showint16( 100, row_pos[3], Value4);         /* OLED_ShowString_1206(72,row_pos[3],"value4",1); */
-	lcd_showstr( 20, row_pos[4], "SetPoint");  lcd_showint16( 100, row_pos[4], Value5);         /* OLED_ShowString_1206(72,row_pos[4],"value5",1); */
-        lcd_showstr( 20, row_pos[5], "Error");  lcd_showint16( 100, row_pos[5], Value6);         /* OLED_ShowString_1206(72,row_pos[2],"value3",1); */
-	lcd_showstr( 20, row_pos[6], "LastError");  lcd_showint16( 100, row_pos[6], Value7);         /* OLED_ShowString_1206(72,row_pos[3],"value4",1); */
+int keyCheck( void )                                    /*按键检测 */
+{
+  int	key_lable = KeyNone;
+  int	temp1, temp2;
+/* 得出哪个键按下的标签位 */
+  if (!gpio_get(C31))       
+    key_lable = KeyUp;
+  if (!gpio_get(C27))        
+    key_lable = KeyDown;
+  if (!gpio_get(C26))   
+    key_lable = KeyLeft;
+  if (!gpio_get(C4))    
+    key_lable = KeyRight;
+  if (!gpio_get(D4))
+    key_lable = KeyConfirm;
+/* 标签位为0，没有键按下 */
+  if ( key_lable == KeyNone )                 /* 没有按键按下 */
+  {
+    if ( key_temp != 0 )                    /* 之前有按键按下 */
+    {
+      temp1= key_counter;  /*按下的计数器 */
+      temp2= key_temp;     /* 之前的按键的标号 */
+      key_counter= 0;
+      key_temp= 0;
+      if ( temp1 > 1 )      //消抖只消一次，即只检测到一次的话则认为没按
+        return(temp2);
+      else 
+        return(0);
+    }
+    else 
+      return(0);
+  }
+/* 标签位不为0，有键按下 */
+  else/*有按键按下 */
+  {                           
+    if (key_temp == 0 )    /* 之前没有检测到按键按下 */
+      key_temp = key_lable;
+    key_counter++;
+    return(0);
+  }
+}
+void UpdateValue2Temp()
+{
+     TempValue1=para2_1;
+     TempValue2=para2_2;
+     TempValue3=para2_3;
+     TempValue4=para2_4;
+     TempValue5=para2_5;
+     TempValue6=para2_6;
+     TempValue7=para2_7;
+}
+
+void UpdateTemp2Value()
+{
+    para2_1=TempValue1;
+    para2_2=TempValue2;
+    para2_3=TempValue3;
+    para2_4=TempValue4;
+    para2_5=TempValue5;
+    para2_6=TempValue6;
+    para2_7=TempValue7;  
+}
+void InitKey()
+{
+  gpio_init(C31,GPI,1,GPIO_PIN_CONFIG);
+  gpio_init(C27,GPI,1,GPIO_PIN_CONFIG);
+  gpio_init(C26,GPI,1,GPIO_PIN_CONFIG);
+  gpio_init(C4, GPI,1,GPIO_PIN_CONFIG);
+  gpio_init(D4, GPI,1,GPIO_PIN_CONFIG);
 }
