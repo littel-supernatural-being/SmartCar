@@ -9,8 +9,8 @@
 
 
 #define para2_1 LeftForwordMotor.KP
-#define para2_2 LeftBackwordMotorSpeed
-#define para2_3 RightForwordMotorSpeed
+#define para2_2 LeftForwordMotor.KI
+#define para2_3 LeftForwordMotor.KD
 #define para2_4 RightBackwordMotorSpeed
 #define para2_5 LeftForwordMotor.SetPoint
 #define para2_6 LeftForwordMotor.Error
@@ -50,7 +50,6 @@ void ScopeGetSampleValue(int SampleValue);//获得示波器的采样
 
 void menu()
 {
-  UpdateValue2Temp();
   if ( clearCount == 20 )//每20帧刷新一次
   {
     clearCount = 0;
@@ -132,8 +131,8 @@ void Menu2_Show()
 {       
         lcd_showstr(0,row_pos[menuRow-1],"*");
 	lcd_showstr( 20, row_pos[0], "KP");            lcd_showint16( 100, row_pos[0], TempValue1);         
-	lcd_showstr( 20, row_pos[1], "LBS");            lcd_showint16( 100, row_pos[1], TempValue2);       
-	lcd_showstr( 20, row_pos[2], "RFS");            lcd_showint16( 100, row_pos[2], TempValue3);        
+	lcd_showstr( 20, row_pos[1], "KI");            lcd_showint16( 100, row_pos[1], TempValue2);       
+	lcd_showstr( 20, row_pos[2], "KD");            lcd_showint16( 100, row_pos[2], TempValue3);        
 	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], TempValue4);         
 	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], TempValue5);         
         lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], TempValue6);         
@@ -166,26 +165,26 @@ void FlashValueOperate()
       case 1: 
       {
         if ( keyState == KeyLeft )
-          TempValue1--;
+          TempValue1-=10;
         else if ( keyState == KeyRight)
-          TempValue1++;
+          TempValue1+=10;
       } 
       break;
       case 2: 
       {
         if ( keyState == KeyLeft )
-          TempValue2--;
+          TempValue2-=1;
         else if ( keyState == KeyRight)
-          TempValue2++;
+          TempValue2+=1;
       } 
       break;
                 
       case 3: 
       {
         if ( keyState == KeyLeft )
-          TempValue3--;
+          TempValue3-=5;
         else if ( keyState == KeyRight)
-          TempValue3++;
+          TempValue3+=5;
       } 
       break;
     
@@ -201,9 +200,9 @@ void FlashValueOperate()
       case 5: 
       {
         if ( keyState == KeyLeft )
-          TempValue5--;
+          TempValue5-=20;
         else if ( keyState == KeyRight)
-          TempValue5++;
+          TempValue5+=20;
       } 
       break;
               

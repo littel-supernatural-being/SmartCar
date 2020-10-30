@@ -58,4 +58,5 @@ void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor
 void DirErrorUpdata(struct DirController *Dir,int MeasureValue);//方向值设定
 void MotorErrorUpdataAll();
 void PhototubeUpdate();
+int Filter(int PastValue,int NextValue);
 #endif

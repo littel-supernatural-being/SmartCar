@@ -43,11 +43,6 @@
 #include "headfile.h"
 
 void MyInit();//所使用的单元初始化
-//uint8 my_buffer;
-//void uart1_call_back()
-//{
-//  
-//}
 
 int main(void)
 {
@@ -59,8 +54,7 @@ int main(void)
     {
        menu();
        supermonitor();
-       pwm_duty(LeftForwordMotor.ForwordPWMPort,14000);
-       pwm_duty(RightForwordMotor.ForwordPWMPort,14000);
+       //pwm_duty(LeftForwordMotor.ForwordPWMPort,14000);
        /*if(scc8660_csi_finish_flag)		//图像采集完成
        {
          scc8660_csi_finish_flag = 0;	//清除采集完成标志位
@@ -80,14 +74,12 @@ void MyInit()
     //显示模式在SEEKFREE_18TFT.h文件内的TFT_DISPLAY_DIR宏定义设置
     lcd_init();     	//初始化TFT屏幕
     pit_init();
-//    uart_rx_irq(USART_1,1);
-//    uart_set_handle(USART_1, &csi_g_lpuartHandle, uart1_call_back, NULL, 0, my_buffer, 1);
     uart_init(USART_1,9600,UART1_TX_B12,UART1_RX_B13);  
     adc_init(ADC_1,ADC1_CH3_B14,ADC_12BIT);
     adc_init(ADC_1,ADC1_CH4_B15,ADC_12BIT);
     adc_init(ADC_1,ADC1_CH10_B21,ADC_12BIT);
     adc_init(ADC_1,ADC1_CH12_B23,ADC_12BIT);
-    pit_interrupt_ms(PIT_CH1,200);//用PIT一号端口设置200ms的中断
+    pit_interrupt_ms(PIT_CH1,50);//用PIT一号端口设置200ms的中断
     //如果屏幕没有任何显示，请检查屏幕接线
     lcd_showstr(0,0,"SEEKFREE SCC8660");
     lcd_showstr(0,1,"Initializing...");
@@ -97,19 +89,20 @@ void MyInit()
     //如果图像只采集一次，请检查场信号(VSY)是否连接OK?
     InitKey();//初始化按键
     //左前轮
-    MotorInit(&LeftForwordMotor,PWM1_MODULE0_CHA_D12,PWM1_MODULE0_CHB_D13,140);
+    MotorInit(&LeftForwordMotor,PWM1_MODULE0_CHA_D12,PWM1_MODULE0_CHB_D13,100);
     qtimer_quad_init(QTIMER_2,QTIMER2_TIMER0_C3,QTIMER2_TIMER3_C25);
     //左后轮
     //MotorInit(&LeftBackwordMotor,PWM1_MODULE3_CHB_D1,PWM1_MODULE3_CHA_D0,140);
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER0_C0,QTIMER1_TIMER1_C1);
     //右前轮
-    MotorInit(&RightForwordMotor,PWM1_MODULE1_CHB_D15,PWM1_MODULE1_CHA_D14,140);
+    MotorInit(&RightForwordMotor,PWM1_MODULE1_CHB_D15,PWM1_MODULE1_CHA_D14,100);
     qtimer_quad_init(QTIMER_3,QTIMER3_TIMER2_B18,QTIMER3_TIMER3_B19);
     //右后轮
     //MotorInit(&RightBackwordMotor,PWM2_MODULE3_CHA_D2,PWM2_MODULE3_CHB_D3,140);//电机初始化
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
      DirControllerInit(&dircontroller,&LeftForwordMotor,&LeftBackwordMotor,
       &RightForwordMotor,&RightBackwordMotor);//控制器初始化*/
+    UpdateValue2Temp();
 }
 
 

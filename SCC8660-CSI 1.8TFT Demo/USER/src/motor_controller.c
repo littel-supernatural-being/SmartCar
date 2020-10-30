@@ -1,7 +1,7 @@
 #include "motor_controller.h"
-const int MotorKP=50;
-const int MotorKI=0;
-const int MotorKD=0;
+const int MotorKP=100*0.7;
+const int MotorKI=37*0.65;
+const int MotorKD=10;
 const int DirKP=0;
 const int DirKI=0;
 const int DirKD=0;
@@ -47,14 +47,20 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
   Which->Error=Which->SetPoint-MeasureValue;
   Which->Integral+=Which->Error;
   Which->result=Which->KP*Which->Error+Which->KI*Which->Integral+Which->KD*(Which->Error-Which->LastError);
-  if(Which->result<=-50000)
-    Which->result=-49000;
-  if(Which->result>=50000)
-    Which->result=49000;
+  if(Which->result<=-30000)
+    Which->result=-30000;
+  if(Which->result>=30000)
+    Which->result=30000;
   if(Which->result>0)
+  {
     pwm_duty(Which->ForwordPWMPort,Which->result);
+    pwm_duty(Which->BackwordPWMPort,0);
+  }
   else
+  {
+    pwm_duty(Which->ForwordPWMPort,0);
     pwm_duty(Which->BackwordPWMPort,-Which->result);
+  }
 }
 void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
   struct MotorController *RFMotor,struct MotorController *RBMotor)
@@ -85,16 +91,16 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
 void UpdateMotorSpeed()//根据编码器号获得编码值放在中断函数中或者循环中
 {
   //左前轮
-  LeftForwordMotorSpeed=qtimer_quad_get(QTIMER_2,QTIMER2_TIMER0_C3);
+  LeftForwordMotorSpeed=Filter(LeftForwordMotorSpeed,qtimer_quad_get(QTIMER_2,QTIMER2_TIMER0_C3));
   qtimer_quad_clear(QTIMER_2,QTIMER2_TIMER0_C3);
   //左后轮
-  LeftBackwordMotorSpeed=-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER1_C1);
+  LeftBackwordMotorSpeed=Filter(LeftBackwordMotorSpeed,-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER1_C1));
   qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER1_C1);
   //右前轮
-  RightForwordMotorSpeed=-qtimer_quad_get(QTIMER_3,QTIMER3_TIMER2_B18);
+  RightForwordMotorSpeed=Filter(RightForwordMotorSpeed,-qtimer_quad_get(QTIMER_3,QTIMER3_TIMER2_B18));
   qtimer_quad_clear(QTIMER_3,QTIMER3_TIMER2_B18);
   //右后轮
-  RightBackwordMotorSpeed=-qtimer_quad_get(QTIMER_3,QTIMER1_TIMER3_C24);
+  RightBackwordMotorSpeed=Filter(RightBackwordMotorSpeed,-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER3_C24));
   qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER3_C24);
 }
 int GetMotorSpeed(int Which)
@@ -124,4 +130,19 @@ void MotorErrorUpdataAll()
   MotorErrorUpdata(&LeftBackwordMotor,LeftBackwordMotorSpeed);
   MotorErrorUpdata(&RightForwordMotor,RightForwordMotorSpeed);
   MotorErrorUpdata(&RightBackwordMotor,RightBackwordMotorSpeed);
+}
+int Filter(int PastValue,int NextValue)//限幅加滑动平均
+{
+  if (abs(PastValue)<abs(NextValue))
+  {
+    PastValue=NextValue;
+    return PastValue;
+  }
+  int error=abs(PastValue)-abs(NextValue);
+  if(error/abs(PastValue)>0.35)
+    return PastValue;
+  else
+    PastValue=PastValue*0.95+NextValue*0.05;
+  return PastValue;
+    
 }
