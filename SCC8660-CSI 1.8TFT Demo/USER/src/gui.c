@@ -8,7 +8,7 @@
 #define para1_7 LeftForwordMotor.result  //%menu1中参数
 
 
-#define para2_1 LeftForwordMotorSpeed
+#define para2_1 LeftForwordMotor.KP
 #define para2_2 LeftBackwordMotorSpeed
 #define para2_3 RightForwordMotorSpeed
 #define para2_4 RightBackwordMotorSpeed
@@ -45,11 +45,12 @@ void Menu1_Show();//第一个调参页不可修改量
 void Menu2_Show();//第二个调参页可修改量
 void FlashValueOperate();//更改变量
 void SignMove();//上翻下翻
-void ScopeDraw(int SetValue);
-void ScopeGetSampleValue(int SampleValue);
+void ScopeDraw(int SetValue);//画出示波器
+void ScopeGetSampleValue(int SampleValue);//获得示波器的采样
 
 void menu()
 {
+  UpdateValue2Temp();
   if ( clearCount == 20 )//每20帧刷新一次
   {
     clearCount = 0;
@@ -77,35 +78,43 @@ void menu()
 void ScopeGetSampleValue(int SampleValue)
 {
   if(SampleValue<0)
-    SampleValue=0;
-  double temp;
+    SampleValue=1;
+  double temp=100;
   if(SampleValue>0)
-    temp=TFT_X_MAX/SampleValue;
-  if(temp<Scale)
+    temp=((double)TFT_Y_MAX)/SampleValue;
+  if(temp<Scale&&Scale!=0)
     Scale=temp;
   static int NextMoment=0;
   if(NextMoment==TFT_X_MAX)
   {
     for(int i=0;i<TFT_X_MAX;i++)
-      WaveForm[i]=0;
+      WaveForm[i]=1;
     NextMoment=0;
     lcd_clear(WHITE);
   }
   else
-  {
-    WaveForm[NextMoment]=(SampleValue>TFT_Y_MAX-1?TFT_Y_MAX-1:SampleValue);
-    WaveForm[NextMoment]=(SampleValue>=0?SampleValue:0);
+  {   
+    WaveForm[NextMoment]=SampleValue;
     NextMoment++;
   }
 }
 void ScopeDraw(int SetValue)
 {
-  SetValue=(int)SetValue*Scale;
-  SetValue=SetValue>TFT_Y_MAX-1?TFT_Y_MAX-1:SetValue;
+  lcd_clear(WHITE);
+  if(SetValue<0)
+    SetValue=1;
+  double temp;
+  if(SetValue>0)
+    temp=((double)TFT_Y_MAX)/SetValue;
+  if(temp<Scale&&temp!=0)
+    Scale=temp;
+  if(SetValue>(TFT_Y_MAX-1))
+    SetValue=TFT_Y_MAX-1;
   for(int i=0;i<TFT_X_MAX;i++)
   {
-    lcd_drawpoint(i,TFT_Y_MAX-1-SetValue,BLACK);
-    lcd_drawpoint(i,TFT_Y_MAX-1-WaveForm[i]*Scale,BLACK);
+    lcd_drawpoint(i,TFT_Y_MAX-1-SetValue*Scale*0.9,BLACK);
+    if(TFT_Y_MAX-1-WaveForm[i]*Scale*0.9>0)
+      lcd_drawpoint(i,TFT_Y_MAX-1-WaveForm[i]*Scale*0.9,BLACK);
   }
 }
 void Menu1_Show()
@@ -117,12 +126,12 @@ void Menu1_Show()
 	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], para1_4);         
 	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], para1_5);         
         lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], para1_6);         
-	lcd_showstr( 20, row_pos[6], "LastError");      lcd_showint16( 100, row_pos[6], para1_7);        
+	lcd_showstr( 20, row_pos[6], "result");      lcd_showint16( 100, row_pos[6], para1_7);        
 }
 void Menu2_Show()
 {       
         lcd_showstr(0,row_pos[menuRow-1],"*");
-	lcd_showstr( 20, row_pos[0], "LFS");            lcd_showint16( 100, row_pos[0], TempValue1);         
+	lcd_showstr( 20, row_pos[0], "KP");            lcd_showint16( 100, row_pos[0], TempValue1);         
 	lcd_showstr( 20, row_pos[1], "LBS");            lcd_showint16( 100, row_pos[1], TempValue2);       
 	lcd_showstr( 20, row_pos[2], "RFS");            lcd_showint16( 100, row_pos[2], TempValue3);        
 	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], TempValue4);         

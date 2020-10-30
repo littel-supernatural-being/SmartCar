@@ -1,5 +1,5 @@
 #include "motor_controller.h"
-const int MotorKP=20;
+const int MotorKP=50;
 const int MotorKI=0;
 const int MotorKD=0;
 const int DirKP=0;
@@ -14,7 +14,9 @@ int LeftForwordMotorSpeed=0;
 int LeftBackwordMotorSpeed=0;
 int RightForwordMotorSpeed=0;
 int RightBackwordMotorSpeed=0;//编码器所得值
-
+int LeftPhototube=0;
+int MidPhototube=0;
+int RightPhototube=0;
 
 void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed)//电机初始化
 {
@@ -23,13 +25,13 @@ void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed
   Which->KD=MotorKD;
   Which->Error=0;
   Which->LastError=0;
-  Which->LastLastError=0;
+  Which->Integral=0;
   Which->result=0;
   Which->SetPoint=Speed;
   Which->ForwordPWMPort=FPWMPort;
   Which->BackwordPWMPort=BPWMPort;
-  pwm_init(FPWMPort , 17000, 0);
-  pwm_init(BPWMPort , 17000, 0);
+  pwm_init(FPWMPort , 5000, 0);
+  pwm_init(BPWMPort , 5000, 0);
 }
 void MotorSetSpeed(struct MotorController *Which,int Speed)//设定电机速度
 {
@@ -41,16 +43,18 @@ int MotorGetSetSpeed(struct MotorController *Which)
 }
 void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入值
 {
-  Which->LastLastError=Which->LastError;
   Which->LastError=Which->Error;
   Which->Error=Which->SetPoint-MeasureValue;
-  Which->result+=Which->Error*Which->KP+Which->KD*(Which->Error-Which->LastError);
-  if(Which->result<0)
-    return;
-  else if(Which->result>=50000)
+  Which->Integral+=Which->Error;
+  Which->result=Which->KP*Which->Error+Which->KI*Which->Integral+Which->KD*(Which->Error-Which->LastError);
+  if(Which->result<=-50000)
+    Which->result=-49000;
+  if(Which->result>=50000)
     Which->result=49000;
-    //pwm_duty(Which->ForwordPWMPort,Which->result);
-  pwm_duty(Which->ForwordPWMPort,14000);
+  if(Which->result>0)
+    pwm_duty(Which->ForwordPWMPort,Which->result);
+  else
+    pwm_duty(Which->BackwordPWMPort,-Which->result);
 }
 void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
   struct MotorController *RFMotor,struct MotorController *RBMotor)
@@ -90,8 +94,8 @@ void UpdateMotorSpeed()//根据编码器号获得编码值放在中断函数中或者循环中
   RightForwordMotorSpeed=-qtimer_quad_get(QTIMER_3,QTIMER3_TIMER2_B18);
   qtimer_quad_clear(QTIMER_3,QTIMER3_TIMER2_B18);
   //右后轮
-  RightBackwordMotorSpeed=-qtimer_quad_get(QTIMER_3,QTIMER1_TIMER2_C2);
-  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER2_C2);
+  RightBackwordMotorSpeed=-qtimer_quad_get(QTIMER_3,QTIMER1_TIMER3_C24);
+  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER3_C24);
 }
 int GetMotorSpeed(int Which)
 {
@@ -107,6 +111,12 @@ int GetMotorSpeed(int Which)
     case LB:
       return LeftBackwordMotorSpeed;
   }
+}
+void PhototubeUpdate()
+{
+  LeftPhototube=adc_mean_filter(ADC_1, ADC1_CH3_B14, 10);
+  MidPhototube=adc_mean_filter(ADC_1, ADC1_CH4_B15, 10);
+  RightPhototube==adc_mean_filter(ADC_1, ADC1_CH10_B21, 10);
 }
 void MotorErrorUpdataAll()
 {

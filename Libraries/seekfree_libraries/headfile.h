@@ -60,6 +60,7 @@
 #include "zf_rom_api.h"
 #include "zf_usb_cdc.h"
 #include "zf_sdcard.h"
+#include "debug.h"
 
 //------逐飞科技产品驱动头文件
 #include "SEEKFREE_FONT.h"

@@ -13,7 +13,7 @@ struct MotorController
   double KD;
   double Error;
   double LastError;
-  double LastLastError;
+  double Integral;
   int result;
   int ForwordPWMPort;
   int BackwordPWMPort;
@@ -38,6 +38,9 @@ extern struct MotorController LeftForwordMotor;
 extern struct MotorController LeftBackwordMotor;
 extern struct MotorController RightForwordMotor;
 extern struct MotorController RightBackwordMotor;
+extern int LeftPhototube;
+extern int MidPhototube;
+extern int RightPhototube;
 extern int LeftForwordMotorSpeed;
 extern int LeftBackwordMotorSpeed;
 extern int RightForwordMotorSpeed;
@@ -54,4 +57,5 @@ void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor
   struct MotorController *RFMotor,struct MotorController *RBMotor);//方向控制器初始化
 void DirErrorUpdata(struct DirController *Dir,int MeasureValue);//方向值设定
 void MotorErrorUpdataAll();
+void PhototubeUpdate();
 #endif
