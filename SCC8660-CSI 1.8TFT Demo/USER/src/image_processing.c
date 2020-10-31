@@ -2,10 +2,12 @@
 #define Black2White  0
 #define White2Black  1
 #define NoJump      -1
-#define MinWidthOfdLine  5
+#define MinWidthOfdLine  1
 #define LostLine   -1
+#define DebugDetectJump1
 uint16  GrayImage[ImageRow][ImageCol];  //灰度图
 uint16  BinImage[ImageRow][ImageCol];  //二值图
+int Threshold=38; //80;
 int MidLineCol=ImageCol/2; //中线所在位置
 int MidLine[ImageRow];//中线
 bool gray_image_finish_flag=false;
@@ -19,11 +21,10 @@ void ImageProcessing()
     return;
   else
     scc8660_csi_finish_flag=false;
-  int Threshold=0;
   
-  GetGrayImage();//先获得灰度图
-  Threshold=OtsuThreshold();//大津算法获得阈值
-  GetBinImage(Threshold);//二值化
+  //GetGrayImage();//先获得灰度图
+  //Threshold=OtsuThreshold();//大津算法获得阈值
+  GetBinImageDirect(Threshold);//二值化
   FindMidLine();//根据二值图进行中线寻找
 }
 
@@ -39,7 +40,7 @@ void GetGrayImage()
   {
     for(Col=0;Col<ImageCol;Col++)
     {       
-      color_camera_take_point(scc8660_csi_image[0],Row,Col,SCC8660_CSI_PIC_W,&RedTemp,&GreenTemp,&BlueTemp);
+      color_camera_take_point(scc8660_csi_image[0],Col,Row,SCC8660_CSI_PIC_W,&RedTemp,&GreenTemp,&BlueTemp);
       GrayTemp=(RedTemp*77+GreenTemp*150+BlueTemp*29+128)>>8;
       GrayImage[Row][Col]=GrayTemp;
     }
@@ -76,7 +77,7 @@ void GetBinImageDirect(int Treshold)
   {
     for(Col=0;Col<ImageCol;Col++)
     {       
-      color_camera_take_point(scc8660_csi_image[0],Row,Col,SCC8660_CSI_PIC_W,&RedTemp,&GreenTemp,&BlueTemp);
+      color_camera_take_point(scc8660_csi_image[0],Col,Row,SCC8660_CSI_PIC_W,&RedTemp,&GreenTemp,&BlueTemp);
       GrayTemp=(RedTemp*77+GreenTemp*150+BlueTemp*29+128)>>8;
       if (GrayTemp<Treshold)
         BinImage[Row][Col]=BLACK;
@@ -92,16 +93,19 @@ void FindMidLine()
 {
   int Row;
   int LastMidLineCol=ImageCol/2;//记录中线所在位置方便下次查找
-  for(Row=0;Row<ImageRow;Row++)
+  for(Row=ImageRow-1;Row>=0;Row--)
   {
     int Temp=FindMidLineInRow(Row,LastMidLineCol);
-    if(Temp==LostLine||abs(Temp-LastMidLineCol)>10)//做丢线处理
+    if((Temp==LostLine||abs(Temp-LastMidLineCol)>20)&&Row<ImageRow-10)//做丢线处理,最靠近的不做丢线处理
       MidLine[Row]=LastMidLineCol;
     else//变化在一定范围内
     {
-      MidLine[Row]=Temp
+      MidLine[Row]=Temp;
       LastMidLineCol=MidLine[Row];
     }
+#ifdef DebugDetectJump
+      lcd_drawpoint(MidLine[Row],Row,BLUE);
+#endif
   }
   
   MidLineCol=0;
@@ -124,6 +128,14 @@ int FindMidLineInRow(int Row,int LastMidLineCol)//LastMidLineCol为上一次中线所在
   for(Col=1;Col<ImageCol-1;Col++)
   {
     JumpType=DetectJump(Row,Col);
+    
+#ifdef DebugDetectJump
+    if(JumpType==Black2White)
+      lcd_drawpoint(Col,Row,RED);
+    if(JumpType==White2Black)
+      lcd_drawpoint(Col,Row,GREEN);
+#endif
+        
     if(JumpType==Black2White)
       JumpRecorder[LineCount][0]=Col;
     else if(JumpType==White2Black)

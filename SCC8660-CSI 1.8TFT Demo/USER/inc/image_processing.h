@@ -4,10 +4,11 @@
 #define ImageRow SCC8660_CSI_PIC_H
 #define ImageCol SCC8660_CSI_PIC_W
 #define ImageRowUsedStart 75   
-#define ImageRowUsedEnd   100 //使用的摄像头的行数
+#define ImageRowUsedEnd   SCC8660_CSI_PIC_H-1 //使用的摄像头的行数
 
 extern uint16  GrayImage[ImageRow][ImageCol];  //灰度图
 extern uint16  BinImage[ImageRow][ImageCol];  //二值图
+extern int Threshold;
 extern int MidLineCol; //中线所在位置
 extern int MidLine[ImageRow];//中线
 extern bool gray_image_finish_flag;

@@ -38,8 +38,8 @@
 //打开新的工程或者工程移动了位置务必执行以下操作
 //第一步 关闭上面所有打开的文件
 //第二步 project  clean  等待下方进度条走完
-
-   
+#define DebugImage1
+#define Debug1
 #include "main.h"
 
 int GameStatus=End;
@@ -51,17 +51,31 @@ int main(void)
     EnableGlobalIRQ(0);
     while(1)
     {
+#ifdef DebugImage
+      if(scc8660_csi_finish_flag)		
+       {
+         lcd_clear(WHITE);
+         scc8660_csi_finish_flag = 0;
+         GetBinImageDirect(Threshold);
+         lcd_displayimage8660_zoom(BinImage[0],SCC8660_CSI_PIC_W,SCC8660_CSI_PIC_H,160,128);
+         FindMidLine();
+       }
+#endif
+
+      
+      
+#ifndef Debug
        menu();
-       supermonitor();
+       //supermonitor();
        
        ImageProcessing();
        
        if(GameStatus==Start)//开始
        {
-         MotorSetSpeed(&LeftForwordMotor,100);
-         MotorSetSpeed(&RightForwordMotor,100);
-         MotorSetSpeed(&LeftBackwordMotor,100);
-         MotorSetSpeed(&RightBackwordMotor,100);
+         MotorSetSpeed(&LeftForwordMotor,70);
+         MotorSetSpeed(&RightForwordMotor,70);
+         MotorSetSpeed(&LeftBackwordMotor,70);
+         MotorSetSpeed(&RightBackwordMotor,70);
          GameStatus=Playing;
        }
        else if(GameStatus==Playing)
@@ -83,6 +97,7 @@ int main(void)
          //本例程默认采集分辨率为160*120，显示分辨率为160*128，纵向拉伸全屏
          lcd_displayimage8660_zoom(scc8660_csi_image[0],SCC8660_CSI_PIC_W,SCC8660_CSI_PIC_H,160,128);
         }*/
+#endif
         
     }
 }

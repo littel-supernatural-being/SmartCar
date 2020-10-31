@@ -43,7 +43,7 @@ void PIT_IRQHandler(void)
         PhototubeUpdate();//光电管数据
         if(find_line_finish_flag&&GameStatus==Playing)
         {
-          DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
+          //DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
           find_line_finish_flag=false;
         }
         MotorErrorUpdataAll();//进行电机调速

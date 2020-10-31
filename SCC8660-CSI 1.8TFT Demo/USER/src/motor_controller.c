@@ -31,8 +31,8 @@ void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed
   Which->SetPoint=Speed;
   Which->ForwordPWMPort=FPWMPort;
   Which->BackwordPWMPort=BPWMPort;
-  pwm_init(FPWMPort , 5000, 0);
-  pwm_init(BPWMPort , 5000, 0);
+  pwm_init(FPWMPort , 1000, 0);
+  pwm_init(BPWMPort , 1000, 0);
 }
 void MotorSetSpeed(struct MotorController *Which,int Speed)//设定电机速度
 {

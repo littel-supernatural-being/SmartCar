@@ -11,7 +11,7 @@
 #define para2_1 LeftForwordMotor.KP
 #define para2_2 LeftForwordMotor.KI
 #define para2_3 LeftForwordMotor.KD
-#define para2_4 RightBackwordMotorSpeed
+#define para2_4 Threshold
 #define para2_5 LeftForwordMotor.SetPoint
 #define para2_6 LeftForwordMotor.Error
 #define para2_7 LeftForwordMotor.result//%menu2中参数
@@ -50,7 +50,7 @@ void ScopeGetSampleValue(int SampleValue);//获得示波器的采样
 
 void menu()
 {
-  if ( clearCount == 20 )//每20帧刷新一次
+  if ( clearCount == 60 )//每20帧刷新一次
   {
     clearCount = 0;
     lcd_clear(WHITE);
@@ -59,8 +59,8 @@ void menu()
     ++clearCount;
   
   if ( page == 1)
-    //DisplayImage(CSI_IMAGE);
-    DisplayImage(GRAY_IMAGE);
+    DisplayImage(CSI_IMAGE);
+    //DisplayImage(GRAY_IMAGE);
   if(page==2)
     DisplayImage(BIN_IMAGE);
   if(page==3)
@@ -93,7 +93,7 @@ void Menu2_Show()
 	lcd_showstr( 20, row_pos[0], "KP");            lcd_showint16( 100, row_pos[0], TempValue1);         
 	lcd_showstr( 20, row_pos[1], "KI");            lcd_showint16( 100, row_pos[1], TempValue2);       
 	lcd_showstr( 20, row_pos[2], "KD");            lcd_showint16( 100, row_pos[2], TempValue3);        
-	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], TempValue4);         
+	lcd_showstr( 20, row_pos[3], "Thre");            lcd_showint16( 100, row_pos[3], TempValue4);         
 	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], TempValue5);         
         lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], TempValue6);         
 	lcd_showstr( 20, row_pos[6], "Result");      lcd_showint16( 100, row_pos[6], TempValue7);         
@@ -113,9 +113,14 @@ void FlashValueOperate()
     {
       if(GameStatus==Playing||GameStatus==Start)
         GameStatus=End;
-      if(GameStatus==End)
+      else if(GameStatus==End)
         GameStatus=Start;
-    }
+
+    }      
+    if(keyState==KeyLeft)
+      Threshold+=2;
+    if(keyState==KeyRight)
+      Threshold-=2;
   }
   if ( page == 5 )//如果是第五页则可以修改参数
   {
@@ -161,9 +166,9 @@ void FlashValueOperate()
       case 4: 
       {
         if ( keyState == KeyLeft )
-          TempValue4--;
+          TempValue4-=2;
         else if ( keyState == KeyRight)
-          TempValue4++;
+          TempValue4+=2;
       } 
       break;
                 
@@ -204,28 +209,38 @@ void DisplayImage(int WhichImage)
     case CSI_IMAGE:
     {
       if (scc8660_csi_finish_flag) //图像采集完成
+      {    
         lcd_displayimage8660_zoom(scc8660_csi_image[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
+      }
     }
     break;//展示摄像头中的原图
     
     case GRAY_IMAGE:
     {
       if (gray_image_finish_flag) //图像采集完成
+      {
         lcd_displayimage8660_zoom(GrayImage[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
+        //lcd_displayimage7725(GrayImage[0],SCC8660_CSI_PIC_W,SCC8660_CSI_PIC_H);
+      }
     }
     break;//展示摄像头中的原图
   
     case BIN_IMAGE:
     {
       if (bin_image_finish_flag) //图像采集完成
+      {    
         lcd_displayimage8660_zoom(BinImage[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
+      }
     } 
     break;//展示二值化图像
             
     case LINE:
     {
       if (find_line_finish_flag) //寻线代码
+      {    
+        lcd_clear(WHITE);
         ShowLine();
+      }
     }
     break;
   }
@@ -287,7 +302,9 @@ void SignMove()
       lcd_clear(WHITE);
       menuRow = menuRow + 1;
     }
-  }    
+  }  
+  if(page==5)
+    UpdateValue2Temp();
 }
 
 
