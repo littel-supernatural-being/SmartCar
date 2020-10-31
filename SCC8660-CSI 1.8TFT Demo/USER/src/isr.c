@@ -41,10 +41,12 @@ void PIT_IRQHandler(void)
       //DisableGlobalIRQ();
         UpdateMotorSpeed();//更新编码器速度值
         PhototubeUpdate();//光电管数据
-        //DirErrorUpdata(&dircontroller);//进行方向控制
+        if(find_line_finish_flag&&GameStatus==Playing)
+        {
+          DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
+          find_line_finish_flag=false;
+        }
         MotorErrorUpdataAll();//进行电机调速
-        //ScopeGetSampleValue(LeftForwordMotorSpeed);
-        //ScopeGetSampleValue(count++);
         PIT_FLAG_CLEAR(PIT_CH1);
     }
     
@@ -78,7 +80,7 @@ void GPIO2_Combined_0_15_IRQHandler(void)
 {
     if(GET_GPIO_FLAG(MT9V03X_VSYNC_PIN))
     {
-       不用清除标志位，标志位在mt9v03x_vsync函数内部会清除
+       //不用清除标志位，标志位在mt9v03x_vsync函数内部会清除
         if(1 == flexio_camera_type)mt9v03x_vsync();
     }
     if(GET_GPIO_FLAG(SCC8660_VSYNC_PIN))

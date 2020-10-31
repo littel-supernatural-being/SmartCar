@@ -40,21 +40,42 @@
 //第二步 project  clean  等待下方进度条走完
 
    
-#include "headfile.h"
+#include "main.h"
 
-void MyInit();//所使用的单元初始化
+int GameStatus=End;
 
 int main(void)
 {
     DisableGlobalIRQ();
     MyInit();
-    
     EnableGlobalIRQ(0);
     while(1)
     {
        menu();
        supermonitor();
-       //pwm_duty(LeftForwordMotor.ForwordPWMPort,14000);
+       
+       ImageProcessing();
+       
+       if(GameStatus==Start)//开始
+       {
+         MotorSetSpeed(&LeftForwordMotor,100);
+         MotorSetSpeed(&RightForwordMotor,100);
+         MotorSetSpeed(&LeftBackwordMotor,100);
+         MotorSetSpeed(&RightBackwordMotor,100);
+         GameStatus=Playing;
+       }
+       else if(GameStatus==Playing)
+       {
+         
+       }
+       if(GameStatus==End)//开始
+       {
+         MotorSetSpeed(&LeftForwordMotor,0);
+         MotorSetSpeed(&RightForwordMotor,0);
+         MotorSetSpeed(&LeftBackwordMotor,0);
+         MotorSetSpeed(&RightBackwordMotor,0);
+       }
+       
        /*if(scc8660_csi_finish_flag)		//图像采集完成
        {
          scc8660_csi_finish_flag = 0;	//清除采集完成标志位
@@ -80,7 +101,6 @@ void MyInit()
     adc_init(ADC_1,ADC1_CH10_B21,ADC_12BIT);
     adc_init(ADC_1,ADC1_CH12_B23,ADC_12BIT);
     pit_interrupt_ms(PIT_CH1,50);//用PIT一号端口设置200ms的中断
-    //如果屏幕没有任何显示，请检查屏幕接线
     lcd_showstr(0,0,"SEEKFREE SCC8660");
     lcd_showstr(0,1,"Initializing...");
     lcd_clear(WHITE);
@@ -89,19 +109,19 @@ void MyInit()
     //如果图像只采集一次，请检查场信号(VSY)是否连接OK?
     InitKey();//初始化按键
     //左前轮
-    MotorInit(&LeftForwordMotor,PWM1_MODULE0_CHA_D12,PWM1_MODULE0_CHB_D13,100);
+    MotorInit(&LeftForwordMotor,PWM1_MODULE0_CHA_D12,PWM1_MODULE0_CHB_D13,0);
     qtimer_quad_init(QTIMER_2,QTIMER2_TIMER0_C3,QTIMER2_TIMER3_C25);
     //左后轮
-    //MotorInit(&LeftBackwordMotor,PWM1_MODULE3_CHB_D1,PWM1_MODULE3_CHA_D0,140);
+    MotorInit(&LeftBackwordMotor,PWM1_MODULE3_CHB_D1,PWM1_MODULE3_CHA_D0,0);
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER0_C0,QTIMER1_TIMER1_C1);
     //右前轮
-    MotorInit(&RightForwordMotor,PWM1_MODULE1_CHB_D15,PWM1_MODULE1_CHA_D14,100);
+    MotorInit(&RightForwordMotor,PWM1_MODULE1_CHB_D15,PWM1_MODULE1_CHA_D14,0);
     qtimer_quad_init(QTIMER_3,QTIMER3_TIMER2_B18,QTIMER3_TIMER3_B19);
     //右后轮
-    //MotorInit(&RightBackwordMotor,PWM2_MODULE3_CHA_D2,PWM2_MODULE3_CHB_D3,140);//电机初始化
+    MotorInit(&RightBackwordMotor,PWM2_MODULE3_CHA_D2,PWM2_MODULE3_CHB_D3,0);//电机初始化
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
      DirControllerInit(&dircontroller,&LeftForwordMotor,&LeftBackwordMotor,
-      &RightForwordMotor,&RightBackwordMotor);//控制器初始化*/
+      &RightForwordMotor,&RightBackwordMotor,ImageCol/2);//利用的图像的控制器初始化
     UpdateValue2Temp();
 }
 

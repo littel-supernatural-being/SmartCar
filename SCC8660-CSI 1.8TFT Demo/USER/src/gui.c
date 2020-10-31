@@ -3,9 +3,9 @@
 #define para1_2 LeftBackwordMotorSpeed
 #define para1_3 RightForwordMotorSpeed
 #define para1_4 RightBackwordMotorSpeed
-#define para1_5 LeftForwordMotor.SetPoint
-#define para1_6 LeftForwordMotor.Error
-#define para1_7 LeftForwordMotor.result  //%menu1中参数
+#define para1_5 LeftPhototube
+#define para1_6 MidPhototube
+#define para1_7 RightPhototube  //%menu1中参数
 
 
 #define para2_1 LeftForwordMotor.KP
@@ -19,7 +19,7 @@
 
 int  TempValue1=0,TempValue5=0, TempValue6=0,TempValue7=0;
 int  TempValue2=0,TempValue3=0, TempValue4=0;
-uint8			page		= 5;    /* 初始为第一页 */
+uint8			page		= 1;    /* 初始为第一页 */
 int			menuRow		= 1;    /* 记录当前是第几排 值可以为1、2、3、4、5  修改了排数的除外 */
 int			keyState	= 0;    /* 用于记录五项开关的值 */
 const unsigned char	row_pos[7]	= { 0, 1, 2, 3, 4, 5, 6};
@@ -57,65 +57,25 @@ void menu()
   }
   else
     ++clearCount;
+  
   if ( page == 1)
-  //dispimage(CSI_IMAGE);
-    ;
+    //DisplayImage(CSI_IMAGE);
+    DisplayImage(GRAY_IMAGE);
   if(page==2)
-    //dispimage(BIN_IMAGE);
-    ;
+    DisplayImage(BIN_IMAGE);
   if(page==3)
-    ScopeDraw(LeftForwordMotor.SetPoint);
+    DisplayImage(LINE);
   if(page==4)
     Menu1_Show();
-  else if ( page == 5 )
+  if(page==5)
     Menu2_Show();
   
   keyState = keyCheck();
   SignMove();
   FlashValueOperate();    
 }
-void ScopeGetSampleValue(int SampleValue)
-{
-  if(SampleValue<0)
-    SampleValue=1;
-  double temp=100;
-  if(SampleValue>0)
-    temp=((double)TFT_Y_MAX)/SampleValue;
-  if(temp<Scale&&Scale!=0)
-    Scale=temp;
-  static int NextMoment=0;
-  if(NextMoment==TFT_X_MAX)
-  {
-    for(int i=0;i<TFT_X_MAX;i++)
-      WaveForm[i]=1;
-    NextMoment=0;
-    lcd_clear(WHITE);
-  }
-  else
-  {   
-    WaveForm[NextMoment]=SampleValue;
-    NextMoment++;
-  }
-}
-void ScopeDraw(int SetValue)
-{
-  lcd_clear(WHITE);
-  if(SetValue<0)
-    SetValue=1;
-  double temp;
-  if(SetValue>0)
-    temp=((double)TFT_Y_MAX)/SetValue;
-  if(temp<Scale&&temp!=0)
-    Scale=temp;
-  if(SetValue>(TFT_Y_MAX-1))
-    SetValue=TFT_Y_MAX-1;
-  for(int i=0;i<TFT_X_MAX;i++)
-  {
-    lcd_drawpoint(i,TFT_Y_MAX-1-SetValue*Scale*0.9,BLACK);
-    if(TFT_Y_MAX-1-WaveForm[i]*Scale*0.9>0)
-      lcd_drawpoint(i,TFT_Y_MAX-1-WaveForm[i]*Scale*0.9,BLACK);
-  }
-}
+
+
 void Menu1_Show()
 {       
         lcd_showstr(0,row_pos[menuRow-1],"*");
@@ -123,9 +83,9 @@ void Menu1_Show()
 	lcd_showstr( 20, row_pos[1], "LBS");            lcd_showint16( 100, row_pos[1], para1_2);         
 	lcd_showstr( 20, row_pos[2], "RFS");            lcd_showint16( 100, row_pos[2], para1_3);        
 	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], para1_4);         
-	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], para1_5);         
-        lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], para1_6);         
-	lcd_showstr( 20, row_pos[6], "result");      lcd_showint16( 100, row_pos[6], para1_7);        
+	lcd_showstr( 20, row_pos[4], "LTube");       lcd_showint16( 100, row_pos[4], para1_5);         
+        lcd_showstr( 20, row_pos[5], "MTube");          lcd_showint16( 100, row_pos[5], para1_6);         
+	lcd_showstr( 20, row_pos[6], "RTube");      lcd_showint16( 100, row_pos[6], para1_7);        
 }
 void Menu2_Show()
 {       
@@ -147,6 +107,16 @@ void FlashValueOperate()
     lcd_clear(WHITE);
   else
     return ;
+  if(page==1||page==2||page==3)
+  {
+    if(keyState==KeyConfirm)
+    {
+      if(GameStatus==Playing||GameStatus==Start)
+        GameStatus=End;
+      if(GameStatus==End)
+        GameStatus=Start;
+    }
+  }
   if ( page == 5 )//如果是第五页则可以修改参数
   {
     if(keyState==KeyConfirm)
@@ -227,55 +197,39 @@ void FlashValueOperate()
   }
 }
 
-/*void dispimage(int which_image)
+void DisplayImage(int WhichImage)
 {     
-      switch(which_image)
-      {     
-            case CSI_IMAGE:
-            {
-                if (scc8660_csi_finish_flag) //图像采集完成
-                {
-                     scc8660_csi_finish_flag = 0; //清除采集完成标志位
-                     lcd_displayimage8660_zoom(scc8660_csi_image[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
-                }
-                break;
-            }//展示摄像头中的原图
+  switch(WhichImage)
+  {     
+    case CSI_IMAGE:
+    {
+      if (scc8660_csi_finish_flag) //图像采集完成
+        lcd_displayimage8660_zoom(scc8660_csi_image[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
+    }
+    break;//展示摄像头中的原图
+    
+    case GRAY_IMAGE:
+    {
+      if (gray_image_finish_flag) //图像采集完成
+        lcd_displayimage8660_zoom(GrayImage[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
+    }
+    break;//展示摄像头中的原图
+  
+    case BIN_IMAGE:
+    {
+      if (bin_image_finish_flag) //图像采集完成
+        lcd_displayimage8660_zoom(BinImage[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
+    } 
+    break;//展示二值化图像
             
-            
-            case BIN_IMAGE:
-            {
-                if (bin_image_finish_flag) //图像采集完成
-                {
-                     bin_image_finish_flag = 0; //清除采集完成标志位
-                     lcd_displayimage8660_zoom(bin_image[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
-                     break;
-                }
-            }//展示二值化图像
-            
-            
-            
-            case SRC_IMAGE:
-            {
-                if (src_image_finish_flag) //图像采集完成
-                {
-                     src_image_finish_flag = 0; //清除采集完成标志位
-                     lcd_displayimage8660_zoom(src_image[0], SCC8660_CSI_PIC_W, SCC8660_CSI_PIC_H, 160, 128);
-                     break;
-                }
-            }//展示去噪后图像
-            
-            
-            case LINE:
-            {
-                if (line_finish_flag) //寻线代码
-                {
-                     line_finish_flag = 0; //清除采集完成标志位
-                     show_line();
-                     break;
-                }
-            }  
-      }
-}*/
+    case LINE:
+    {
+      if (find_line_finish_flag) //寻线代码
+        ShowLine();
+    }
+    break;
+  }
+}
 
 void SignMove()
 {
@@ -378,6 +332,20 @@ int keyCheck( void )                                    /*按键检测 */
     return(0);
   }
 }
+
+
+void ShowLine()
+{
+  int i;
+  for(int i=0;i<ImageRow;i++)
+  {
+    if(MidLine[i]>=0&&MidLine[i]<ImageCol)
+       lcd_drawpoint(MidLine[i],i,BLACK);//从75左右开始出现清晰线条，到100左右开始出现模糊
+                                          //检测缺口在100之前
+  }
+}
+
+
 void UpdateValue2Temp()
 {
      TempValue1=para2_1;
@@ -406,4 +374,55 @@ void InitKey()
   gpio_init(C26,GPI,1,GPIO_PIN_CONFIG);
   gpio_init(C4, GPI,1,GPIO_PIN_CONFIG);
   gpio_init(D4, GPI,1,GPIO_PIN_CONFIG);
+}
+
+
+
+
+
+
+
+
+
+void ScopeGetSampleValue(int SampleValue)
+{
+  if(SampleValue<0)
+    SampleValue=1;
+  double temp=100;
+  if(SampleValue>0)
+    temp=((double)TFT_Y_MAX)/SampleValue;
+  if(temp<Scale&&Scale!=0)
+    Scale=temp;
+  static int NextMoment=0;
+  if(NextMoment==TFT_X_MAX)
+  {
+    for(int i=0;i<TFT_X_MAX;i++)
+      WaveForm[i]=1;
+    NextMoment=0;
+    lcd_clear(WHITE);
+  }
+  else
+  {   
+    WaveForm[NextMoment]=SampleValue;
+    NextMoment++;
+  }
+}
+void ScopeDraw(int SetValue)
+{
+  lcd_clear(WHITE);
+  if(SetValue<0)
+    SetValue=1;
+  double temp;
+  if(SetValue>0)
+    temp=((double)TFT_Y_MAX)/SetValue;
+  if(temp<Scale&&temp!=0)
+    Scale=temp;
+  if(SetValue>(TFT_Y_MAX-1))
+    SetValue=TFT_Y_MAX-1;
+  for(int i=0;i<TFT_X_MAX;i++)
+  {
+    lcd_drawpoint(i,TFT_Y_MAX-1-SetValue*Scale*0.9,BLACK);
+    if(TFT_Y_MAX-1-WaveForm[i]*Scale*0.9>0)
+      lcd_drawpoint(i,TFT_Y_MAX-1-WaveForm[i]*Scale*0.9,BLACK);
+  }
 }

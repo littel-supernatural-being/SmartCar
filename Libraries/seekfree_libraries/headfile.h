@@ -84,5 +84,7 @@
 #include "SEEKFREE_SCC8660.h"
 #include "gui.h"
 #include "motor_controller.h"
+#include "image_processing.h"
+#include "main.h"
 #endif
 

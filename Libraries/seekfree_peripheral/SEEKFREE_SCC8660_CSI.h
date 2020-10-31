@@ -116,6 +116,6 @@ uint16  scc8660_set_maunal_wb(UARTN_enum uartn, uint16 data);
 uint16  scc8660_set_reg_addr(UARTN_enum uartn, uint8 reg, uint16 data);
 void    csi_seekfree_sendimg_scc8660(UARTN_enum uartn, uint8 *image, uint16 width, uint16 height);
 void 	seekfree_sendimg_scc8660_usb_cdc(uint8 *image, uint16 width, uint16 height);
-void inline color_camera_take_point(uint16 *dat, uint16 x, uint16 y, uint16 z, uint8 *r, uint8 *g, uint8 *b);
+extern void inline color_camera_take_point(uint16 *dat, uint16 x, uint16 y, uint16 z, uint8 *r, uint8 *g, uint8 *b);
 
 #endif

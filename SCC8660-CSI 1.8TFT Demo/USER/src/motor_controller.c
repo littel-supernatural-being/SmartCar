@@ -5,6 +5,7 @@ const int MotorKD=10;
 const int DirKP=0;
 const int DirKI=0;
 const int DirKD=0;
+const int MostDecrement=400;//最大差速
 struct MotorController LeftForwordMotor;
 struct MotorController LeftBackwordMotor;
 struct MotorController RightForwordMotor;
@@ -37,10 +38,14 @@ void MotorSetSpeed(struct MotorController *Which,int Speed)//设定电机速度
 {
   Which->SetPoint=Speed;
 }
+
+
 int MotorGetSetSpeed(struct MotorController *Which)
 {
   return Which->SetPoint;
 }
+
+
 void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入值
 {
   Which->LastError=Which->Error;
@@ -62,47 +67,34 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
     pwm_duty(Which->BackwordPWMPort,-Which->result);
   }
 }
-void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
-  struct MotorController *RFMotor,struct MotorController *RBMotor)
-  {
-    Dir->KP=DirKP;
-    Dir->KI=DirKI;
-    Dir->KD=DirKD;
-    Dir->RightForwordMotor=RFMotor;
-    Dir->RightBackwordMotor=RBMotor;
-    Dir->LeftForwordMotor=LFMotor;
-    Dir->LeftBackwordMotor=LBMotor;
-    Dir->Error=0;
-    Dir->LastError=0;
-    Dir->LastLastError=0;
-    Dir->SetPoint=0;
-    Dir->decrement=0;
-  }
-void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
-{
-  Dir->LastLastError=Dir->LastError;
-  Dir->LastError=Dir->Error;
-  Dir->Error=Dir->SetPoint-MeasureValue;
-  Dir->decrement+=Dir->KP*Dir->Error+Dir->KD*(Dir->Error-Dir->LastError);
-  int LeftSpeed=MotorGetSetSpeed(Dir->LeftForwordMotor);//调速是左边速度不变改右边速度
-  MotorSetSpeed(Dir->RightForwordMotor,LeftSpeed+Dir->decrement);
-  MotorSetSpeed(Dir->RightBackwordMotor,LeftSpeed+Dir->decrement);
-}
+
+
 void UpdateMotorSpeed()//根据编码器号获得编码值放在中断函数中或者循环中
 {
   //左前轮
   LeftForwordMotorSpeed=Filter(LeftForwordMotorSpeed,qtimer_quad_get(QTIMER_2,QTIMER2_TIMER0_C3));
   qtimer_quad_clear(QTIMER_2,QTIMER2_TIMER0_C3);
   //左后轮
-  LeftBackwordMotorSpeed=Filter(LeftBackwordMotorSpeed,-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER1_C1));
-  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER1_C1);
+  LeftBackwordMotorSpeed=Filter(LeftBackwordMotorSpeed,qtimer_quad_get(QTIMER_1,QTIMER1_TIMER0_C0));
+  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER0_C0);
   //右前轮
   RightForwordMotorSpeed=Filter(RightForwordMotorSpeed,-qtimer_quad_get(QTIMER_3,QTIMER3_TIMER2_B18));
   qtimer_quad_clear(QTIMER_3,QTIMER3_TIMER2_B18);
   //右后轮
-  RightBackwordMotorSpeed=Filter(RightBackwordMotorSpeed,-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER3_C24));
-  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER3_C24);
+  RightBackwordMotorSpeed=Filter(RightBackwordMotorSpeed,-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER2_C2));
+  qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER2_C2);
 }
+
+
+void MotorErrorUpdataAll()
+{
+  MotorErrorUpdata(&LeftForwordMotor,LeftForwordMotorSpeed);
+  MotorErrorUpdata(&LeftBackwordMotor,LeftBackwordMotorSpeed);
+  MotorErrorUpdata(&RightForwordMotor,RightForwordMotorSpeed);
+  MotorErrorUpdata(&RightBackwordMotor,RightBackwordMotorSpeed);
+}
+
+
 int GetMotorSpeed(int Which)
 {
   UpdateMotor();
@@ -118,19 +110,65 @@ int GetMotorSpeed(int Which)
       return LeftBackwordMotorSpeed;
   }
 }
+
+
+void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
+  struct MotorController *RFMotor,struct MotorController *RBMotor,int SetPoint)
+  {
+    Dir->KP=DirKP;
+    Dir->KI=DirKI;
+    Dir->KD=DirKD;
+    Dir->RightForwordMotor=RFMotor;
+    Dir->RightBackwordMotor=RBMotor;
+    Dir->LeftForwordMotor=LFMotor;
+    Dir->LeftBackwordMotor=LBMotor;
+    Dir->Error=0;
+    Dir->LastError=0;
+    Dir->Integral=0;
+    Dir->SetPoint=SetPoint;
+    Dir->decrement=0;
+  }
+
+
+void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
+{
+  Dir->LastError=Dir->Error;
+  Dir->Error=Dir->SetPoint-MeasureValue;
+  Dir->Integral+=Dir->Error;
+  Dir->decrement=Dir->KP*Dir->Error+Dir->KI*Dir->Integral+Dir->KD*(Dir->Error-Dir->LastError);
+  if(abs(Dir->decrement)<30)//偏差过小则不进行差速
+    return ;
+  
+  if(Dir->decrement>400)
+    Dir->decrement=400;
+  if(Dir->decrement<-400)
+    Dir->decrement=-400;
+  //偏差过大进行限幅
+  
+  if(Dir->decrement>0)//右偏左减速
+  {
+    int RightSpeed=MotorGetSetSpeed(Dir->RightForwordMotor);
+    MotorSetSpeed(Dir->LeftForwordMotor,RightSpeed-Dir->decrement);
+    MotorSetSpeed(Dir->LeftBackwordMotor,RightSpeed-Dir->decrement);
+  }
+  if(Dir->decrement<0)//左偏右减速
+  {
+    int LeftSpeed=MotorGetSetSpeed(Dir->LeftForwordMotor);
+    MotorSetSpeed(Dir->RightForwordMotor,LeftSpeed+Dir->decrement);
+    MotorSetSpeed(Dir->RightBackwordMotor,LeftSpeed+Dir->decrement);
+  }
+  
+}
+
+
 void PhototubeUpdate()
 {
   LeftPhototube=adc_mean_filter(ADC_1, ADC1_CH3_B14, 10);
   MidPhototube=adc_mean_filter(ADC_1, ADC1_CH4_B15, 10);
-  RightPhototube==adc_mean_filter(ADC_1, ADC1_CH10_B21, 10);
+  RightPhototube=adc_mean_filter(ADC_1, ADC1_CH12_B23, 10);
 }
-void MotorErrorUpdataAll()
-{
-  MotorErrorUpdata(&LeftForwordMotor,LeftForwordMotorSpeed);
-  MotorErrorUpdata(&LeftBackwordMotor,LeftBackwordMotorSpeed);
-  MotorErrorUpdata(&RightForwordMotor,RightForwordMotorSpeed);
-  MotorErrorUpdata(&RightBackwordMotor,RightBackwordMotorSpeed);
-}
+
+
 int Filter(int PastValue,int NextValue)//限幅加滑动平均
 {
   if (abs(PastValue)<abs(NextValue))

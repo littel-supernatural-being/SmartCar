@@ -78,13 +78,13 @@ void Testdata_generate()
   Variable[6]=LeftForwordMotor.Integral;
   Variable[7]=LeftForwordMotor.result;
   Variable[8]=LeftForwordMotor.SetPoint;
-  Variable[9]=10;
-  Variable[10]=11;
-  Variable[11]=12;
-  Variable[12]=13;
-  Variable[13]=14;
-  Variable[14]=15;
-  Variable[15]=16;
+  Variable[9]=RightForwordMotor.SetPoint;
+  Variable[10]=LeftBackwordMotor.SetPoint;
+  Variable[11]=RightBackwordMotor.SetPoint;
+  Variable[12]=dircontroller.SetPoint;
+  Variable[13]=dircontroller.Error;
+  Variable[14]=dircontroller.LastError;
+  Variable[15]=dircontroller.decrement;
 }
 
 

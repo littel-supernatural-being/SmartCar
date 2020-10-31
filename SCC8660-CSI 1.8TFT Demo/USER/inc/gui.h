@@ -2,10 +2,10 @@
 #define GUI_H_
 #include "headfile.h"
 
-#define CSI_IMAGE 0
-#define BIN_IMAGE 1
-#define LINE      3
-#define SRC_IMAGE 2
+#define CSI_IMAGE  0
+#define GRAY_IMAGE 1
+#define BIN_IMAGE  2
+#define LINE       3
 
 #define KeyNone      0
 #define KeyUp        1
@@ -44,7 +44,8 @@ extern void show_line();
 extern void InitKey();
 extern void ScopeGetSampleValue(int SampleValue);
 extern void UpdateValue2Temp();
-
+extern void DisplayImage(int WhichImage);
+extern void ShowLine();
 
 
 #endif
