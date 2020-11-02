@@ -3,8 +3,8 @@
 #include "headfile.h"
 #define ImageRow SCC8660_CSI_PIC_H
 #define ImageCol SCC8660_CSI_PIC_W
-#define ImageRowUsedStart 75   
-#define ImageRowUsedEnd   SCC8660_CSI_PIC_H-1 //使用的摄像头的行数
+#define ImageRowUsedStart 40   
+#define ImageRowUsedEnd   70 //使用的摄像头的行数
 
 extern uint16  GrayImage[ImageRow][ImageCol];  //灰度图
 extern uint16  BinImage[ImageRow][ImageCol];  //二值图

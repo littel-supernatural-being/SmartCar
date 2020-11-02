@@ -8,17 +8,17 @@
 #define para1_7 RightPhototube  //%menu1中参数
 
 
-#define para2_1 LeftForwordMotor.KP
-#define para2_2 LeftForwordMotor.KI
-#define para2_3 LeftForwordMotor.KD
+#define para2_1 dircontroller.KP
+#define para2_2 dircontroller.KI
+#define para2_3 dircontroller.KD
 #define para2_4 Threshold
 #define para2_5 LeftForwordMotor.SetPoint
 #define para2_6 LeftForwordMotor.Error
 #define para2_7 LeftForwordMotor.result//%menu2中参数
 
 
-int  TempValue1=0,TempValue5=0, TempValue6=0,TempValue7=0;
-int  TempValue2=0,TempValue3=0, TempValue4=0;
+float TempValue1=0,TempValue2=0,TempValue3=0;
+int TempValue4=0,TempValue5=0,TempValue6=0, TempValue7=0;
 uint8			page		= 1;    /* 初始为第一页 */
 int			menuRow		= 1;    /* 记录当前是第几排 值可以为1、2、3、4、5  修改了排数的除外 */
 int			keyState	= 0;    /* 用于记录五项开关的值 */
@@ -50,6 +50,7 @@ void ScopeGetSampleValue(int SampleValue);//获得示波器的采样
 
 void menu()
 {
+  static bool HaveUpDatePage5=false;
   if ( clearCount == 60 )//每20帧刷新一次
   {
     clearCount = 0;
@@ -59,16 +60,35 @@ void menu()
     ++clearCount;
   
   if ( page == 1)
+  {
     DisplayImage(CSI_IMAGE);
+    HaveUpDatePage5=false;
     //DisplayImage(GRAY_IMAGE);
+  }
   if(page==2)
+  {
     DisplayImage(BIN_IMAGE);
+    HaveUpDatePage5=false;
+  }
   if(page==3)
+  {
     DisplayImage(LINE);
+    HaveUpDatePage5=false;
+  }
   if(page==4)
+  {
     Menu1_Show();
+    HaveUpDatePage5=false;
+  }
   if(page==5)
+  {
+    if(HaveUpDatePage5==false)
+    {
+      UpdateValue2Temp();
+      HaveUpDatePage5=true;
+    }
     Menu2_Show();
+  }
   
   keyState = keyCheck();
   SignMove();
@@ -90,9 +110,9 @@ void Menu1_Show()
 void Menu2_Show()
 {       
         lcd_showstr(0,row_pos[menuRow-1],"*");
-	lcd_showstr( 20, row_pos[0], "KP");            lcd_showint16( 100, row_pos[0], TempValue1);         
-	lcd_showstr( 20, row_pos[1], "KI");            lcd_showint16( 100, row_pos[1], TempValue2);       
-	lcd_showstr( 20, row_pos[2], "KD");            lcd_showint16( 100, row_pos[2], TempValue3);        
+	lcd_showstr( 20, row_pos[0], "KP");            lcd_showfloat( 100, row_pos[0], TempValue1,2,1);//lcd_showint16( 100, row_pos[0], TempValue1);         
+	lcd_showstr( 20, row_pos[1], "KI");            lcd_showfloat( 100, row_pos[1], TempValue2,2,1);//lcd_showint16( 100, row_pos[1], TempValue2);       
+	lcd_showstr( 20, row_pos[2], "KD");            lcd_showfloat( 100, row_pos[2], TempValue3,2,1);//lcd_showint16( 100, row_pos[2], TempValue3);        
 	lcd_showstr( 20, row_pos[3], "Thre");            lcd_showint16( 100, row_pos[3], TempValue4);         
 	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], TempValue5);         
         lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], TempValue6);         
@@ -140,9 +160,9 @@ void FlashValueOperate()
       case 1: 
       {
         if ( keyState == KeyLeft )
-          TempValue1-=10;
+          TempValue1-=0.1;
         else if ( keyState == KeyRight)
-          TempValue1+=10;
+          TempValue1+=0.1;
       } 
       break;
       case 2: 
@@ -157,9 +177,9 @@ void FlashValueOperate()
       case 3: 
       {
         if ( keyState == KeyLeft )
-          TempValue3-=5;
+          TempValue3-=0.1;
         else if ( keyState == KeyRight)
-          TempValue3+=5;
+          TempValue3+=0.1;
       } 
       break;
     
@@ -248,6 +268,7 @@ void DisplayImage(int WhichImage)
 
 void SignMove()
 {
+
   if (keyState == KeyUp)
   {
     
@@ -303,8 +324,6 @@ void SignMove()
       menuRow = menuRow + 1;
     }
   }  
-  if(page==5)
-    UpdateValue2Temp();
 }
 
 

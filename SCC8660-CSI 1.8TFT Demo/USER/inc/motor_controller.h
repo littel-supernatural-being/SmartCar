@@ -33,6 +33,7 @@ struct DirController
   double LastError;
   double Integral;
   double decrement; //减量
+  int SetSpeed;
 };
 extern struct MotorController LeftForwordMotor;
 extern struct MotorController LeftBackwordMotor;
@@ -54,8 +55,9 @@ void MotorSetSpeed(struct MotorController *Which,int Speed);//设定电机速度
 int MotorGetSetSpeed(struct MotorController *Which);
 void MotorErrorUpdata(struct MotorController *Which,int MeasureValue); //更新速度值
 void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
-  struct MotorController *RFMotor,struct MotorController *RBMotor,int SetPoint);//方向控制器初始化
+  struct MotorController *RFMotor,struct MotorController *RBMotor,int SetPoint,int SetSpeed);//方向控制器初始化
 void DirErrorUpdata(struct DirController *Dir,int MeasureValue);//方向值设定
+void DirSetSpeed(struct DirController *Dir,int SetSpeed);
 void MotorErrorUpdataAll();
 void PhototubeUpdate();
 int Filter(int PastValue,int NextValue);

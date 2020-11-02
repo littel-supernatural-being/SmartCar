@@ -38,6 +38,7 @@
 //打开新的工程或者工程移动了位置务必执行以下操作
 //第一步 关闭上面所有打开的文件
 //第二步 project  clean  等待下方进度条走完
+#define DebugMotor1
 #define DebugImage1
 #define Debug1
 #include "main.h"
@@ -72,10 +73,16 @@ int main(void)
        
        if(GameStatus==Start)//开始
        {
-         MotorSetSpeed(&LeftForwordMotor,70);
-         MotorSetSpeed(&RightForwordMotor,70);
-         MotorSetSpeed(&LeftBackwordMotor,70);
-         MotorSetSpeed(&RightBackwordMotor,70);
+#ifdef DebugMotor
+         MotorSetSpeed(&LeftForwordMotor,120);
+         MotorSetSpeed(&RightForwordMotor,120);
+         MotorSetSpeed(&LeftBackwordMotor,120);
+         MotorSetSpeed(&RightBackwordMotor,120);
+#endif
+#ifndef DebugMotor
+         DirSetSpeed(&dircontroller,80);
+         
+#endif
          GameStatus=Playing;
        }
        else if(GameStatus==Playing)
@@ -84,10 +91,15 @@ int main(void)
        }
        if(GameStatus==End)//开始
        {
+#ifdef DebugMotor
          MotorSetSpeed(&LeftForwordMotor,0);
          MotorSetSpeed(&RightForwordMotor,0);
          MotorSetSpeed(&LeftBackwordMotor,0);
          MotorSetSpeed(&RightBackwordMotor,0);
+#endif
+#ifndef DebugMotor
+         DirSetSpeed(&dircontroller,0);
+#endif
        }
        
        /*if(scc8660_csi_finish_flag)		//图像采集完成
@@ -136,7 +148,7 @@ void MyInit()
     MotorInit(&RightBackwordMotor,PWM2_MODULE3_CHA_D2,PWM2_MODULE3_CHB_D3,0);//电机初始化
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
      DirControllerInit(&dircontroller,&LeftForwordMotor,&LeftBackwordMotor,
-      &RightForwordMotor,&RightBackwordMotor,ImageCol/2);//利用的图像的控制器初始化
+      &RightForwordMotor,&RightBackwordMotor,ImageCol/2,0);//利用的图像的控制器初始化
     UpdateValue2Temp();
 }
 

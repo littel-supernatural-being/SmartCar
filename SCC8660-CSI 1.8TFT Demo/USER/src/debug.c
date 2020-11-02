@@ -83,7 +83,7 @@ void Testdata_generate()
   Variable[11]=RightBackwordMotor.SetPoint;
   Variable[12]=dircontroller.SetPoint;
   Variable[13]=dircontroller.Error;
-  Variable[14]=dircontroller.LastError;
+  Variable[14]=MidLineCol;
   Variable[15]=dircontroller.decrement;
 }
 

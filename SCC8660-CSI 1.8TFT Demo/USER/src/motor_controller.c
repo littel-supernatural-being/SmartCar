@@ -2,7 +2,7 @@
 const int MotorKP=100*0.7;
 const int MotorKI=37*0.65;
 const int MotorKD=10;
-const int DirKP=0;
+const int DirKP=20;
 const int DirKI=0;
 const int DirKD=0;
 const int MostDecrement=400;//最大差速
@@ -52,10 +52,10 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
   Which->Error=Which->SetPoint-MeasureValue;
   Which->Integral+=Which->Error;
   Which->result=Which->KP*Which->Error+Which->KI*Which->Integral+Which->KD*(Which->Error-Which->LastError);
-  if(Which->result<=-30000)
-    Which->result=-30000;
-  if(Which->result>=30000)
-    Which->result=30000;
+  if(Which->result<=-35000)
+    Which->result=-35000;
+  if(Which->result>=35000)
+    Which->result=35000;
   if(Which->result>0)
   {
     pwm_duty(Which->ForwordPWMPort,Which->result);
@@ -113,7 +113,7 @@ int GetMotorSpeed(int Which)
 
 
 void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
-  struct MotorController *RFMotor,struct MotorController *RBMotor,int SetPoint)
+  struct MotorController *RFMotor,struct MotorController *RBMotor,int SetPoint,int SetSpeed)
   {
     Dir->KP=DirKP;
     Dir->KI=DirKI;
@@ -127,6 +127,7 @@ void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor
     Dir->Integral=0;
     Dir->SetPoint=SetPoint;
     Dir->decrement=0;
+    Dir->SetSpeed=SetSpeed;
   }
 
 
@@ -137,29 +138,40 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
   Dir->Integral+=Dir->Error;
   Dir->decrement=Dir->KP*Dir->Error+Dir->KI*Dir->Integral+Dir->KD*(Dir->Error-Dir->LastError);
   if(abs(Dir->decrement)<30)//偏差过小则不进行差速
+  {
+    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed);
+    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed);
+    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed);
     return ;
+  }
   
-  if(Dir->decrement>400)
-    Dir->decrement=400;
-  if(Dir->decrement<-400)
-    Dir->decrement=-400;
+  if(Dir->decrement>300)
+    Dir->decrement=300;
+  if(Dir->decrement<-300)
+    Dir->decrement=-300;
   //偏差过大进行限幅
   
-  if(Dir->decrement>0)//右偏左减速
+  if(Dir->decrement>0)//右偏左减速右加速
   {
-    int RightSpeed=MotorGetSetSpeed(Dir->RightForwordMotor);
-    MotorSetSpeed(Dir->LeftForwordMotor,RightSpeed-Dir->decrement);
-    MotorSetSpeed(Dir->LeftBackwordMotor,RightSpeed-Dir->decrement);
+    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
   }
-  if(Dir->decrement<0)//左偏右减速
+  if(Dir->decrement<0)//左偏右减速左加速
   {
-    int LeftSpeed=MotorGetSetSpeed(Dir->LeftForwordMotor);
-    MotorSetSpeed(Dir->RightForwordMotor,LeftSpeed+Dir->decrement);
-    MotorSetSpeed(Dir->RightBackwordMotor,LeftSpeed+Dir->decrement);
+    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
   }
   
 }
-
+void DirSetSpeed(struct DirController *Dir,int SetSpeed)
+{
+  Dir->SetSpeed=SetSpeed;
+}
 
 void PhototubeUpdate()
 {

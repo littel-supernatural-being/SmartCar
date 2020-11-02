@@ -7,7 +7,7 @@
 #define DebugDetectJump1
 uint16  GrayImage[ImageRow][ImageCol];  //灰度图
 uint16  BinImage[ImageRow][ImageCol];  //二值图
-int Threshold=38; //80;
+int Threshold=34; //80;
 int MidLineCol=ImageCol/2; //中线所在位置
 int MidLine[ImageRow];//中线
 bool gray_image_finish_flag=false;
@@ -96,12 +96,12 @@ void FindMidLine()
   for(Row=ImageRow-1;Row>=0;Row--)
   {
     int Temp=FindMidLineInRow(Row,LastMidLineCol);
-    if((Temp==LostLine||abs(Temp-LastMidLineCol)>20)&&Row<ImageRow-10)//做丢线处理,最靠近的不做丢线处理
+    if(Temp==LostLine||(abs(Temp-LastMidLineCol)>20&&Row<ImageRow-10))//做丢线处理,最靠近的不做丢线处理
       MidLine[Row]=LastMidLineCol;
     else//变化在一定范围内
     {
       MidLine[Row]=Temp;
-      LastMidLineCol=MidLine[Row];
+      LastMidLineCol=MidLine[Row]*0.2+LastMidLineCol*0.8;
     }
 #ifdef DebugDetectJump
       lcd_drawpoint(MidLine[Row],Row,BLUE);
@@ -119,7 +119,7 @@ void FindMidLine()
 
 int FindMidLineInRow(int Row,int LastMidLineCol)//LastMidLineCol为上一次中线所在列数，作为参考
 {
-  int JumpRecorder[10][3]={0};//十条线的左跳点，右跳点,中点
+  int JumpRecorder[100][3]={0};//十条线的左跳点，右跳点,中点
   int LineCount=0;//总线条数目
   int MidLineIndex=0;//最靠近中线的线条下标
   int MinDistanceWithMidLine=160;//离上一行中线最近的距离
@@ -177,7 +177,7 @@ int DetectJump(int Row,int Col)//检测跳变点
   if(Col==1)
   {
     if(  (BinImage[Row][0]!=BinImage[Row][Col+1])
-       &&(BinImage[Row][Col+1]==BinImage[Row][Col+2]==BinImage[Row][Col+3]))
+       &&(BinImage[Row][Col+1]==BinImage[Row][Col+2]))
     {
       if(BinImage[Row][0]==BLACK)
         return Black2White;
@@ -187,28 +187,11 @@ int DetectJump(int Row,int Col)//检测跳变点
     else 
       return NoJump; 
   }
-  
-  
-   if(Col==2)
-  {
-    if(  (BinImage[Row][0]==BinImage[Row][1])
-       &&(BinImage[Row][1]!=BinImage[Row][Col+1])
-       &&(BinImage[Row][Col+1]==BinImage[Row][Col+2]==BinImage[Row][Col+3]))
-    {
-      if(BinImage[Row][0]==BLACK)
-        return Black2White;
-      else
-        return White2Black;
-    }
-    else 
-      return NoJump; 
-  }
-  
-  
+    
   if(Col==ImageCol-2)
   {
     if(  (BinImage[Row][Col+1]!=BinImage[Row][Col-1])
-       &&(BinImage[Row][Col-1]==BinImage[Row][Col-2]==BinImage[Row][Col-3]))
+       &&(BinImage[Row][Col-1]==BinImage[Row][Col-2]))
     {
       if(BinImage[Row][Col+1]==BLACK)
         return White2Black;
@@ -218,32 +201,14 @@ int DetectJump(int Row,int Col)//检测跳变点
     else 
       return NoJump; 
   }
-  
-  
-  if(Col==ImageCol-3)
-  {
-    if(  (BinImage[Row][Col+1]==BinImage[Row][Col+2])
-       &&(BinImage[Row][Col+1]!=BinImage[Row][Col-1])
-       &&(BinImage[Row][Col-1]==BinImage[Row][Col-2]==BinImage[Row][Col-3]))
-    {
-      if(BinImage[Row][Col+1]==BLACK)
-        return White2Black;
-      else
-        return Black2White;
-    }
-    else 
-      return NoJump; 
-  }
-  
+   
   
   if(BinImage[Row][Col-1]==BLACK&&BinImage[Row][Col+1]==WHITE&&
-     BinImage[Row][Col-2]==BLACK&&BinImage[Row][Col+2]==WHITE&&
-     BinImage[Row][Col-3]==BLACK&&BinImage[Row][Col+3]==WHITE)
+     BinImage[Row][Col-2]==BLACK&&BinImage[Row][Col+2]==WHITE)
     return Black2White;
   
   if(BinImage[Row][Col-1]==WHITE&&BinImage[Row][Col+1]==BLACK&&
-     BinImage[Row][Col-2]==WHITE&&BinImage[Row][Col+2]==BLACK&&
-     BinImage[Row][Col-3]==WHITE&&BinImage[Row][Col+3]==BLACK)
+     BinImage[Row][Col-2]==WHITE&&BinImage[Row][Col+2]==BLACK)
     return White2Black;
   
   return NoJump;
