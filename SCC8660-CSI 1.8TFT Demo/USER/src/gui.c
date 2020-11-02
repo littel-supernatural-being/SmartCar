@@ -3,18 +3,18 @@
 #define para1_2 LeftBackwordMotorSpeed
 #define para1_3 RightForwordMotorSpeed
 #define para1_4 RightBackwordMotorSpeed
-#define para1_5 LeftPhototube
-#define para1_6 MidPhototube
-#define para1_7 RightPhototube  //%menu1中参数
+#define para1_5 dircontroller.Error
+#define para1_6 MidLineCol
+#define para1_7 dircontroller.decrement  //%menu1中参数
 
 
 #define para2_1 dircontroller.KP
 #define para2_2 dircontroller.KI
 #define para2_3 dircontroller.KD
 #define para2_4 Threshold
-#define para2_5 LeftForwordMotor.SetPoint
-#define para2_6 LeftForwordMotor.Error
-#define para2_7 LeftForwordMotor.result//%menu2中参数
+#define para2_5 Threshold
+#define para2_6 Threshold
+#define para2_7 Threshold//%menu2中参数
 
 
 float TempValue1=0,TempValue2=0,TempValue3=0;
@@ -34,8 +34,7 @@ int			temp6;
 int			temp7;
 int			clearCount = 0;
 int                     start=0;
-int WaveForm[TFT_X_MAX];//波形
-double Scale=10;//波形放大比例
+
 void menu(); //总函数
 void InitKey();//初始化按键
 void dispimage(int which_image);//图像显示函数
@@ -45,8 +44,12 @@ void Menu1_Show();//第一个调参页不可修改量
 void Menu2_Show();//第二个调参页可修改量
 void FlashValueOperate();//更改变量
 void SignMove();//上翻下翻
+/*
+int WaveForm[TFT_X_MAX];//波形
+double Scale=10;//波形放大比例
 void ScopeDraw(int SetValue);//画出示波器
 void ScopeGetSampleValue(int SampleValue);//获得示波器的采样
+*/
 
 void menu()
 {
@@ -103,20 +106,20 @@ void Menu1_Show()
 	lcd_showstr( 20, row_pos[1], "LBS");            lcd_showint16( 100, row_pos[1], para1_2);         
 	lcd_showstr( 20, row_pos[2], "RFS");            lcd_showint16( 100, row_pos[2], para1_3);        
 	lcd_showstr( 20, row_pos[3], "RBS");            lcd_showint16( 100, row_pos[3], para1_4);         
-	lcd_showstr( 20, row_pos[4], "LTube");       lcd_showint16( 100, row_pos[4], para1_5);         
-        lcd_showstr( 20, row_pos[5], "MTube");          lcd_showint16( 100, row_pos[5], para1_6);         
-	lcd_showstr( 20, row_pos[6], "RTube");      lcd_showint16( 100, row_pos[6], para1_7);        
+	lcd_showstr( 20, row_pos[4], "Error");       lcd_showint16( 100, row_pos[4], para1_5);         
+        lcd_showstr( 20, row_pos[5], "MidL");          lcd_showint16( 100, row_pos[5], para1_6);         
+	lcd_showstr( 20, row_pos[6], "Dec");      lcd_showint16( 100, row_pos[6], para1_7);        
 }
 void Menu2_Show()
 {       
         lcd_showstr(0,row_pos[menuRow-1],"*");
-	lcd_showstr( 20, row_pos[0], "KP");            lcd_showfloat( 100, row_pos[0], TempValue1,2,1);//lcd_showint16( 100, row_pos[0], TempValue1);         
-	lcd_showstr( 20, row_pos[1], "KI");            lcd_showfloat( 100, row_pos[1], TempValue2,2,1);//lcd_showint16( 100, row_pos[1], TempValue2);       
-	lcd_showstr( 20, row_pos[2], "KD");            lcd_showfloat( 100, row_pos[2], TempValue3,2,1);//lcd_showint16( 100, row_pos[2], TempValue3);        
-	lcd_showstr( 20, row_pos[3], "Thre");            lcd_showint16( 100, row_pos[3], TempValue4);         
-	lcd_showstr( 20, row_pos[4], "SetPoint");       lcd_showint16( 100, row_pos[4], TempValue5);         
-        lcd_showstr( 20, row_pos[5], "Error");          lcd_showint16( 100, row_pos[5], TempValue6);         
-	lcd_showstr( 20, row_pos[6], "Result");      lcd_showint16( 100, row_pos[6], TempValue7);         
+	lcd_showstr( 20, row_pos[0], "KP");            lcd_showfloat( 100, row_pos[0], para2_1,2,1);//lcd_showint16( 100, row_pos[0], TempValue1);         
+	lcd_showstr( 20, row_pos[1], "KI");            lcd_showfloat( 100, row_pos[1], para2_2,2,1);//lcd_showint16( 100, row_pos[1], TempValue2);       
+	lcd_showstr( 20, row_pos[2], "KD");            lcd_showfloat( 100, row_pos[2], para2_3,2,1);//lcd_showint16( 100, row_pos[2], TempValue3);        
+	lcd_showstr( 20, row_pos[3], "Thre");            lcd_showint16( 100, row_pos[3], para2_4);         
+	lcd_showstr( 20, row_pos[4], "Thre");       lcd_showint16( 100, row_pos[4], para2_5);         
+        lcd_showstr( 20, row_pos[5], "Thre");          lcd_showint16( 100, row_pos[5], para2_6);         
+	lcd_showstr( 20, row_pos[6], "Thre");      lcd_showint16( 100, row_pos[6], para2_7);         
 }
 
 
@@ -144,11 +147,11 @@ void FlashValueOperate()
   }
   if ( page == 5 )//如果是第五页则可以修改参数
   {
-    if(keyState==KeyConfirm)
+    /*if(keyState==KeyConfirm)
     {
       UpdateTemp2Value();
       return;
-    }
+    }*/
     switch ( menuRow )      /* 判断行数 */
     {                       
       case 0: 
@@ -160,62 +163,62 @@ void FlashValueOperate()
       case 1: 
       {
         if ( keyState == KeyLeft )
-          TempValue1-=0.1;
+          para2_1-=0.1;
         else if ( keyState == KeyRight)
-          TempValue1+=0.1;
+          para2_1+=0.1;
       } 
       break;
       case 2: 
       {
         if ( keyState == KeyLeft )
-          TempValue2-=1;
+          para2_2-=1;
         else if ( keyState == KeyRight)
-          TempValue2+=1;
+          para2_2+=1;
       } 
       break;
                 
       case 3: 
       {
         if ( keyState == KeyLeft )
-          TempValue3-=0.1;
+          para2_3-=0.1;
         else if ( keyState == KeyRight)
-          TempValue3+=0.1;
+          para2_3+=0.1;
       } 
       break;
     
       case 4: 
       {
         if ( keyState == KeyLeft )
-          TempValue4-=2;
+          para2_4-=2;
         else if ( keyState == KeyRight)
-          TempValue4+=2;
+          para2_4+=2;
       } 
       break;
                 
       case 5: 
       {
         if ( keyState == KeyLeft )
-          TempValue5-=20;
+          para2_5-=20;
         else if ( keyState == KeyRight)
-          TempValue5+=20;
+          para2_5+=20;
       } 
       break;
               
       case 6: 
       {
         if ( keyState == KeyLeft )
-          TempValue6--;
+          para2_6--;
         else if ( keyState == KeyRight)
-          TempValue6++;
+          para2_6++;
       } 
       break;
               
       case 7: 
       {
         if ( keyState == KeyLeft )
-          TempValue7--;
+          para2_7--;
         else if ( keyState == KeyRight)
-          TempValue7++;
+          para2_7++;
       } 
       break;
     }
@@ -373,7 +376,7 @@ int keyCheck( void )                                    /*按键检测 */
 void ShowLine()
 {
   int i;
-  for(int i=0;i<ImageRow;i++)
+  for(i=0;i<ImageRow;i++)
   {
     if(MidLine[i]>=0&&MidLine[i]<ImageCol)
        lcd_drawpoint(MidLine[i],i,BLACK);//从75左右开始出现清晰线条，到100左右开始出现模糊
@@ -420,7 +423,7 @@ void InitKey()
 
 
 
-void ScopeGetSampleValue(int SampleValue)
+/*void ScopeGetSampleValue(int SampleValue)
 {
   if(SampleValue<0)
     SampleValue=1;
@@ -461,4 +464,4 @@ void ScopeDraw(int SetValue)
     if(TFT_Y_MAX-1-WaveForm[i]*Scale*0.9>0)
       lcd_drawpoint(i,TFT_Y_MAX-1-WaveForm[i]*Scale*0.9,BLACK);
   }
-}
+}*/

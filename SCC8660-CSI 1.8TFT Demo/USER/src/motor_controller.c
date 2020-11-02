@@ -2,7 +2,7 @@
 const int MotorKP=100*0.7;
 const int MotorKI=37*0.65;
 const int MotorKD=10;
-const int DirKP=20;
+const int DirKP=8;
 const int DirKI=0;
 const int DirKD=0;
 const int MostDecrement=400;//最大差速
@@ -51,11 +51,19 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
   Which->LastError=Which->Error;
   Which->Error=Which->SetPoint-MeasureValue;
   Which->Integral+=Which->Error;
+  //加积分限
+  
+  if(Which->Integral>2000)
+    Which->Integral=2000;
+  if(Which->Integral<-2000)
+    Which->Integral=-2000;
+      
   Which->result=Which->KP*Which->Error+Which->KI*Which->Integral+Which->KD*(Which->Error-Which->LastError);
-  if(Which->result<=-35000)
-    Which->result=-35000;
-  if(Which->result>=35000)
-    Which->result=35000;
+  
+  if(Which->result<=-40000)
+    Which->result=-40000;
+  if(Which->result>=40000)
+    Which->result=40000;
   if(Which->result>0)
   {
     pwm_duty(Which->ForwordPWMPort,Which->result);
@@ -135,9 +143,9 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
 {
   Dir->LastError=Dir->Error;
   Dir->Error=Dir->SetPoint-MeasureValue;
-  Dir->Integral+=Dir->Error;
-  Dir->decrement=Dir->KP*Dir->Error+Dir->KI*Dir->Integral+Dir->KD*(Dir->Error-Dir->LastError);
-  if(abs(Dir->decrement)<30)//偏差过小则不进行差速
+  int temp=Dir->KP*Dir->Error+Dir->KD*(Dir->Error-Dir->LastError);
+  Dir->decrement=Dir->decrement*0.6+temp*0.4;//滑动平均
+  if(abs(Dir->decrement)<4*Dir->KP)//偏差过小则不进行差速
   {
     MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed);
     MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed);
@@ -154,15 +162,31 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
   
   if(Dir->decrement>0)//右偏左减速右加速
   {
-    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
-    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    if(Dir->SetSpeed-Dir->decrement/2>15)//最低限速
+    {
+      MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
+      MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    }
+    else
+    {
+      MotorSetSpeed(Dir->LeftForwordMotor,15);
+      MotorSetSpeed(Dir->LeftBackwordMotor,15);
+    }
     MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
     MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
   }
-  if(Dir->decrement<0)//左偏右减速左加速
+  if(Dir->decrement<0)//左偏左加速
   {
-    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
-    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    if(Dir->SetSpeed+Dir->decrement/2>15)//最低限速
+    {
+      MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
+      MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    }
+    else
+    {
+      MotorSetSpeed(Dir->RightForwordMotor,15);
+      MotorSetSpeed(Dir->RightBackwordMotor,15);
+    }
     MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
     MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
   }

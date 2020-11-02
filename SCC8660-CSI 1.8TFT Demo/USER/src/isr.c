@@ -40,11 +40,10 @@ void PIT_IRQHandler(void)
     
     if(PIT_FLAG_GET(PIT_CH1))
     {
-      //DisableGlobalIRQ();
         UpdateMotorSpeed();//更新编码器速度值
         PhototubeUpdate();//光电管数据
 #ifdef DebugPIDWhithUpMoniter
-        //DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
+        DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
         
 #endif
 #ifndef DebugPIDWhithUpMoniter

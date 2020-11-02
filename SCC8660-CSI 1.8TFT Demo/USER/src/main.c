@@ -148,7 +148,7 @@ void MyInit()
     MotorInit(&RightBackwordMotor,PWM2_MODULE3_CHA_D2,PWM2_MODULE3_CHB_D3,0);//电机初始化
     qtimer_quad_init(QTIMER_1,QTIMER1_TIMER2_C2,QTIMER1_TIMER3_C24);
      DirControllerInit(&dircontroller,&LeftForwordMotor,&LeftBackwordMotor,
-      &RightForwordMotor,&RightBackwordMotor,ImageCol/2,0);//利用的图像的控制器初始化
+      &RightForwordMotor,&RightBackwordMotor,76,0);//利用的图像的控制器初始化
     UpdateValue2Temp();
 }
 
