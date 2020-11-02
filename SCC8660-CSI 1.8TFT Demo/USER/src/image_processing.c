@@ -27,8 +27,10 @@ void ImageProcessing()
   
   //GetGrayImage();//先获得灰度图
   //Threshold=OtsuThreshold();//大津算法获得阈值
-  GetBinAndTerImageDirect(Threshold);//二值化
+  GetBinAndTerImageDirect(Threshold);//二和三值化
+  DetectGameStatus();//判断比赛状况
   FindMidLine();//根据二值图进行中线寻找
+  
 }
 
 
@@ -176,6 +178,29 @@ int FindMidLineInRow(int Row,int LastMidLineCol)//LastMidLineCol为上一次中线所在
   }
   return JumpRecorder[MidLineIndex][2];
 }
+//Ready(检测是否起跑)->Start(设定目标速度)->Playing(跑圈，检测圈数)->End(停下)
+void DetectGameStatus()
+{
+  if(bin_image_finish_flag==false)
+    return ;
+  
+  int CountOfBlack=0;
+  int Row,Col;
+  
+  if(GameStatus==Ready)
+  {
+    for(Row=0;Row<ImageRow;Row++)
+      for(Col=0;Col<ImageCol;Col++)
+        if(BinImage[Row][Col]==BLACK)
+          CountOfBlack++;
+    if(CountOfBlack>0.9*ImageCol*ImageRow)//黑色区域大于90%
+      GameStatus=Start;
+  }
+  
+  else if(GameStatus==Playing&&CountOfTurn==3)
+    GameStatus=End;
+}
+
 
 
 /*

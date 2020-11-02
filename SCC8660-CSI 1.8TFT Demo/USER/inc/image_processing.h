@@ -25,6 +25,7 @@ extern void GetBinAndTerImageDirect(int Treshold);//不经过灰度图直接二值化
 extern void FindMidLine();
 extern int OtsuThreshold();//大津算法
 extern int FindMidLineInRow(int Row,int LastMidLineCol);
+extern void DetectGameStatus()
 //LastMidLineCol为上一次中线所在列数，作为参考，返回中线所在列号
 extern void ImageProcessing();//图像处理的集合函数
 extern int DetectJump(int Row,int Col);//检测跳变点

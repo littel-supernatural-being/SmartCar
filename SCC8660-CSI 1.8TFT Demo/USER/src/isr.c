@@ -19,7 +19,7 @@
 
 #include "headfile.h"
 #include "isr.h"
-#define DebugPIDWhithUpMoniter1
+#define DebugPIDWhithUpMoniter
 
 
 int count=0;
@@ -43,7 +43,7 @@ void PIT_IRQHandler(void)
         UpdateMotorSpeed();//更新编码器速度值
         PhototubeUpdate();//光电管数据
 #ifdef DebugPIDWhithUpMoniter
-        DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
+       // DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
         
 #endif
 #ifndef DebugPIDWhithUpMoniter
