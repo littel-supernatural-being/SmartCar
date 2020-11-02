@@ -8,17 +8,20 @@
 
 extern uint16  GrayImage[ImageRow][ImageCol];  //灰度图
 extern uint16  BinImage[ImageRow][ImageCol];  //二值图
+extern int Stop;
+extern int Slop;
 extern int Threshold;
 extern int MidLineCol; //中线所在位置
 extern int MidLine[ImageRow];//中线
 extern bool gray_image_finish_flag;
 extern bool bin_image_finish_flag;
 extern bool find_line_finish_flag;
-
-
+extern bool ter_image_finish_flag;
+extern void FindStart();
+extern void FindStop();
 extern void GetGrayImage();
 extern void GetBinImage(int Treshold);
-extern void GetBinImageDirect(int Treshold);//不经过灰度图直接二值化
+extern void GetBinAndTerImageDirect(int Treshold);//不经过灰度图直接二值化
 extern void FindMidLine();
 extern int OtsuThreshold();//大津算法
 extern int FindMidLineInRow(int Row,int LastMidLineCol);

@@ -7,13 +7,16 @@
 #define DebugDetectJump1
 uint16  GrayImage[ImageRow][ImageCol];  //灰度图
 uint16  BinImage[ImageRow][ImageCol];  //二值图
+uint16  TerImage[ImageRow][ImageCol];  //三值图
+int Stop=0;
+int Slop=0;
 int Threshold=34; //80;
 int MidLineCol=ImageCol/2; //中线所在位置
 int MidLine[ImageRow];//中线
 bool gray_image_finish_flag=false;
 bool bin_image_finish_flag=false;
 bool find_line_finish_flag=false;
-
+bool ter_image_finish_flag=false;
 
 void ImageProcessing()
 {
@@ -24,7 +27,7 @@ void ImageProcessing()
   
   //GetGrayImage();//先获得灰度图
   //Threshold=OtsuThreshold();//大津算法获得阈值
-  GetBinImageDirect(Threshold);//二值化
+  GetBinAndTerImageDirect(Threshold);//二值化
   FindMidLine();//根据二值图进行中线寻找
 }
 
@@ -66,7 +69,7 @@ void GetBinImage(int Treshold)
 }
 
 
-void GetBinImageDirect(int Treshold)
+void GetBinAndTerImageDirect(int Treshold)
 {
   uint8 RedTemp=0;
   uint8 GreenTemp=0;
@@ -83,9 +86,18 @@ void GetBinImageDirect(int Treshold)
         BinImage[Row][Col]=BLACK;
       else
         BinImage[Row][Col]=WHITE;
+      if(RedTemp>16&&GreenTemp>40&&BlueTemp>25)
+        TerImage[Row][Col]=BLACK;
+      if(GreenTemp<23&&BlueTemp>6)
+        TerImage[Row][Col]=WHITE;
+      else
+        TerImage[Row][Col]=GREEN;
+      
     }
   }
   bin_image_finish_flag=true;
+  ter_image_finish_flag=true;
+  
 }
 
 
@@ -166,7 +178,71 @@ int FindMidLineInRow(int Row,int LastMidLineCol)//LastMidLineCol为上一次中线所在
 }
 
 
+/*
+Findslop函数用来判断是否即将进入元素
+需要定义一个全局变量 slop=0
+slop为0表示未进入元素；slop为2表示即将进入元素
+在调用完这个函数以后，需要将slop置0！
+*/
+void FindSlop()
+{
+  if(ter_image_finish_flag==false)
+    return;
+  int i=0;
+  for (i=80;i<120;i++)
+    if(TerImage[i][60]==WHITE && TerImage[i+1][60]==GREEN && TerImage[i+1][60]==GREEN)
+    {
+      Slop=Slop+1;
+      break;
+    }
+  for (i=80;i>0;i--)
+    if(TerImage[i][60]==WHITE && TerImage[i-1][60]==GREEN && TerImage[i-1][60]==GREEN)
+    {
+      Slop=Slop+1;
+      break;
+    }      
+}
 
+/*
+Findstop函数用来判断是否即将进入元素
+需要定义一个全局变量 stop=0
+stop<9表示未停止；stop=9表示需要停止
+*/
+void FindStop()
+{
+  int i;
+  int count1=0;
+  int count2=0;
+  for (i=70;i<90;i++)
+  {
+    if(BinImage[60][i]==BLACK)
+      count1=count1+1;
+    if(BinImage[61][i]==BLACK)  
+      count2=count2+1;
+  }
+  if(count1==19 && count2<19)
+  Stop=Stop+1;
+}
+ /*
+Findstart函数用来判断是否开始比赛
+需要定义一个全局变量 start=0
+start=0表示未开始；stop=1表示开始
+*/
+void FindStart()
+{
+  int count=0;
+  int i,j;
+  for (i=0;i<120;i++)
+  {
+    for (j=0;j<160;j++)
+    {
+      if (BinImage[i][j]==BLACK)
+        count=count+1;
+    }
+  }
+  if(count<19100)
+    start=1;
+}
 
 ///////底层算法///////
 
