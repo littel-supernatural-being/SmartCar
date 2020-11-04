@@ -12,14 +12,12 @@ struct MotorController LeftBackwordMotor;
 struct MotorController RightForwordMotor;
 struct MotorController RightBackwordMotor;
 struct DirController dircontroller;
+int DiffSpeedWay=Camera;
 int LeftForwordMotorSpeed=0;
 int LeftBackwordMotorSpeed=0;
 int RightForwordMotorSpeed=0;
 int RightBackwordMotorSpeed=0;//编码器所得值
 int ABSValue=5;
-int LeftPhototube=0;
-int MidPhototube=0;
-int RightPhototube=0;
 
 void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed)//电机初始化
 {
@@ -213,13 +211,6 @@ void DirSetSpeed(struct DirController *Dir,int SetSpeed)
   Dir->SetSpeed=SetSpeed;
 }
 
-void PhototubeUpdate()
-{
-  LeftPhototube=adc_mean_filter(ADC_1, ADC1_CH3_B14, 10);
-  MidPhototube=adc_mean_filter(ADC_1, ADC1_CH4_B15, 10);
-  RightPhototube=adc_mean_filter(ADC_1, ADC1_CH12_B23, 10);
-}
-
 
 int Filter(int PastValue,int NextValue)//限幅加滑动平均
 {
@@ -236,3 +227,5 @@ int Filter(int PastValue,int NextValue)//限幅加滑动平均
   return PastValue;
     
 }
+
+

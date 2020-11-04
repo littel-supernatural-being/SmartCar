@@ -19,7 +19,7 @@
 
 #include "headfile.h"
 #include "isr.h"
-#define DebugPIDWhithUpMoniter
+#define DebugPIDWhithUpMoniter1
 
 
 int count=0;
@@ -41,16 +41,25 @@ void PIT_IRQHandler(void)
     if(PIT_FLAG_GET(PIT_CH1))
     {
         UpdateMotorSpeed();//更新编码器速度值
-        PhototubeUpdate();//光电管数据
+        UpDataPhotoTube();//光电管数据
 #ifdef DebugPIDWhithUpMoniter
        // DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
         
 #endif
+        
 #ifndef DebugPIDWhithUpMoniter
         if(find_line_finish_flag&&GameStatus==Playing)
         {
-          DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
-          find_line_finish_flag=false;
+          if(DiffSpeedWay==Camera)
+          {
+            DirErrorUpdata(&dircontroller,MidLineCol);//进行方向控制
+            find_line_finish_flag=false;
+          }
+          else
+          {
+            DirErrorUpdata(&dircontroller,MidLineColInTube);//进行方向控制
+            phototube_finish_flag=false;
+          }
         }
 
 #endif

@@ -86,5 +86,6 @@
 #include "motor_controller.h"
 #include "image_processing.h"
 #include "main.h"
+#include "phototube.h"
 #endif
 

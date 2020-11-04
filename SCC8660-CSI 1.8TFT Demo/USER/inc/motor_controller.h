@@ -5,6 +5,8 @@
 #define LF  2
 #define RB  3
 #define LB  4
+#define Tube   0
+#define Camera 1
 struct MotorController
 {
   double SetPoint; //速度设定值
@@ -47,6 +49,7 @@ extern int LeftBackwordMotorSpeed;
 extern int RightForwordMotorSpeed;
 extern int RightBackwordMotorSpeed;//编码器所得值
 extern int ABSValue;
+extern int DiffSpeedWay;
 extern struct DirController dircontroller;
 
 int GetMotorSpeed(int Which);
@@ -62,4 +65,5 @@ void DirSetSpeed(struct DirController *Dir,int SetSpeed);
 void MotorErrorUpdataAll();
 void PhototubeUpdate();
 int Filter(int PastValue,int NextValue);
+
 #endif

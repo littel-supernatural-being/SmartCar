@@ -145,10 +145,7 @@ void MyInit()
     lcd_init();     	//初始化TFT屏幕
     pit_init();
     uart_init(USART_1,9600,UART1_TX_B12,UART1_RX_B13);  
-    adc_init(ADC_1,ADC1_CH3_B14,ADC_12BIT);
-    adc_init(ADC_1,ADC1_CH4_B15,ADC_12BIT);
-    adc_init(ADC_1,ADC1_CH10_B21,ADC_12BIT);
-    adc_init(ADC_1,ADC1_CH12_B23,ADC_12BIT);
+    PhotoTubeInit();
     pit_interrupt_ms(PIT_CH1,50);//用PIT一号端口设置200ms的中断
     lcd_showstr(0,0,"SEEKFREE SCC8660");
     lcd_showstr(0,1,"Initializing...");
