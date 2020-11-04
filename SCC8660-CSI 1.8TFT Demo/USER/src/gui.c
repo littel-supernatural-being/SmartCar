@@ -1,7 +1,7 @@
 #include "gui.h"
-#define para1_1 LeftForwordMotorSpeed
+#define para1_1 LeftBackwordMotorSpeed
 #define para1_2 LeftBackwordMotorSpeed
-#define para1_3 RightForwordMotorSpeed
+#define para1_3 RightBackwordMotorSpeed
 #define para1_4 RightBackwordMotorSpeed
 #define para1_5 dircontroller.Error
 #define para1_6 MidLineCol
@@ -11,7 +11,7 @@
 #define para2_1 dircontroller.KP
 #define para2_2 dircontroller.KI
 #define para2_3 dircontroller.KD
-#define para2_4 ABSValue
+#define para2_4 Threshold
 #define para2_5 Threshold
 #define para2_6 Threshold
 #define para2_7 Threshold//%menu2ÖÐ²ÎÊý
@@ -116,7 +116,7 @@ void Menu2_Show()
 	lcd_showstr( 20, row_pos[0], "KP");            lcd_showfloat( 100, row_pos[0], para2_1,2,1);//lcd_showint16( 100, row_pos[0], TempValue1);         
 	lcd_showstr( 20, row_pos[1], "KI");            lcd_showfloat( 100, row_pos[1], para2_2,2,1);//lcd_showint16( 100, row_pos[1], TempValue2);       
 	lcd_showstr( 20, row_pos[2], "KD");            lcd_showfloat( 100, row_pos[2], para2_3,2,1);//lcd_showint16( 100, row_pos[2], TempValue3);        
-	lcd_showstr( 20, row_pos[3], "ABS");            lcd_showint16( 100, row_pos[3], para2_4);         
+	lcd_showstr( 20, row_pos[3], "Thre");            lcd_showint16( 100, row_pos[3], para2_4);         
 	lcd_showstr( 20, row_pos[4], "Thre");       lcd_showint16( 100, row_pos[4], para2_5);         
         lcd_showstr( 20, row_pos[5], "Thre");          lcd_showint16( 100, row_pos[5], para2_6);         
 	lcd_showstr( 20, row_pos[6], "Thre");      lcd_showint16( 100, row_pos[6], para2_7);         

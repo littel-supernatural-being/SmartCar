@@ -1,23 +1,18 @@
 #include "motor_controller.h"
-#define ABS1
 const int MotorKP=60;
 const int MotorKI=37*0.65;
 const int MotorKD=30;
-const int DirKP=4.7;
+const int DirKP=11.25;
 const int DirKI=0;
-const int DirKD=0;
-const int MostDecrement=800;//最大差速
-struct MotorController LeftForwordMotor;
+const int DirKD=38.7;
+
 struct MotorController LeftBackwordMotor;
-struct MotorController RightForwordMotor;
 struct MotorController RightBackwordMotor;
 struct DirController dircontroller;
-int DiffSpeedWay=Camera;
-int LeftForwordMotorSpeed=0;
+
+int ChangeDirWay=Camera;
 int LeftBackwordMotorSpeed=0;
-int RightForwordMotorSpeed=0;
 int RightBackwordMotorSpeed=0;//编码器所得值
-int ABSValue=-0;
 
 void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed)//电机初始化
 {
@@ -79,15 +74,9 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
 
 void UpdateMotorSpeed()//根据编码器号获得编码值放在中断函数中或者循环中
 {
-  //左前轮
-  LeftForwordMotorSpeed=Filter(LeftForwordMotorSpeed,qtimer_quad_get(QTIMER_2,QTIMER2_TIMER0_C3));
-  qtimer_quad_clear(QTIMER_2,QTIMER2_TIMER0_C3);
   //左后轮
   LeftBackwordMotorSpeed=Filter(LeftBackwordMotorSpeed,qtimer_quad_get(QTIMER_1,QTIMER1_TIMER0_C0));
   qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER0_C0);
-  //右前轮
-  RightForwordMotorSpeed=Filter(RightForwordMotorSpeed,-qtimer_quad_get(QTIMER_3,QTIMER3_TIMER2_B18));
-  qtimer_quad_clear(QTIMER_3,QTIMER3_TIMER2_B18);
   //右后轮
   RightBackwordMotorSpeed=Filter(RightBackwordMotorSpeed,-qtimer_quad_get(QTIMER_1,QTIMER1_TIMER2_C2));
   qtimer_quad_clear(QTIMER_1,QTIMER1_TIMER2_C2);
@@ -96,9 +85,7 @@ void UpdateMotorSpeed()//根据编码器号获得编码值放在中断函数中或者循环中
 
 void MotorErrorUpdataAll()
 {
-  MotorErrorUpdata(&LeftForwordMotor,LeftForwordMotorSpeed);
   MotorErrorUpdata(&LeftBackwordMotor,LeftBackwordMotorSpeed);
-  MotorErrorUpdata(&RightForwordMotor,RightForwordMotorSpeed);
   MotorErrorUpdata(&RightBackwordMotor,RightBackwordMotorSpeed);
 }
 
@@ -108,10 +95,6 @@ int GetMotorSpeed(int Which)
   UpdateMotor();
   switch(Which)
   {
-    case RF:
-      return RightForwordMotorSpeed;
-    case LF:
-      return LeftForwordMotorSpeed;
     case RB:
       return RightBackwordMotorSpeed;
     case LB:
@@ -120,15 +103,13 @@ int GetMotorSpeed(int Which)
 }
 
 
-void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor,struct MotorController *LBMotor,
-  struct MotorController *RFMotor,struct MotorController *RBMotor,int SetPoint,int SetSpeed)
+void DirControllerInit(struct DirController *Dir,struct MotorController *LBMotor,
+struct MotorController *RBMotor,int SetPoint,int SetSpeed)
   {
     Dir->KP=DirKP;
     Dir->KI=DirKI;
     Dir->KD=DirKD;
-    Dir->RightForwordMotor=RFMotor;
     Dir->RightBackwordMotor=RBMotor;
-    Dir->LeftForwordMotor=LFMotor;
     Dir->LeftBackwordMotor=LBMotor;
     Dir->Error=0;
     Dir->LastError=0;
@@ -139,71 +120,29 @@ void DirControllerInit(struct DirController *Dir,struct MotorController *LFMotor
   }
 
 
-void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
+void DirErrorUpdata(struct DirController *Dir,int MeasureValue,bool DiffSpeed)
 {
+  //若Error>0则左偏否则右偏
   Dir->LastError=Dir->Error;
   Dir->Error=Dir->SetPoint-MeasureValue;
   int temp=Dir->KP*Dir->Error+Dir->KD*(Dir->Error-Dir->LastError);
   Dir->decrement=Dir->decrement*0.6+temp*0.4;//滑动平均
-  if(abs(Dir->decrement)<4*Dir->KP)//偏差过小则不进行差速
+  if(DiffSpeed==false||Dir->Error<10)//不进行差速
   {
-    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed);
     MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed);
-    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed);
     MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed);
-    return ;
   }
-  
-  if(Dir->decrement>MostDecrement)
-    Dir->decrement=MostDecrement;
-  if(Dir->decrement<-MostDecrement)
-    Dir->decrement=-MostDecrement;
-  //偏差过大进行限幅
-  
-  if(Dir->decrement>0)//右偏左减速右加速
+  else
   {
-#ifdef ABS
-    if(Dir->SetSpeed-Dir->decrement/2>ABSValue)//最低限速
-    {
-      MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
-      MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
-    }
-    else
-    {
-      MotorSetSpeed(Dir->LeftForwordMotor,ABSValue);
-      MotorSetSpeed(Dir->LeftBackwordMotor,ABSValue);
-    }
-#endif
-    
-#ifndef ABS
-    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/3);
-    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/3);
-#endif
-    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement*2/3);
-    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement*2/3);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed+Dir->Error*1.5);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->Error*1.5);
   }
-  if(Dir->decrement<0)//左偏左加速
-  {
-#ifdef ABS
-    if(Dir->SetSpeed+Dir->decrement/2>ABSValue)//最低限速
-    {
-      MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
-      MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
-    }
-    else
-    {
-      MotorSetSpeed(Dir->RightForwordMotor,ABSValue);
-      MotorSetSpeed(Dir->RightBackwordMotor,ABSValue);
-    }
-#endif
-    
-#ifndef ABS
-    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/3);
-    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/3);
-#endif
-    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement*2/3);
-    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement*2/3);
-  }
+  if(Dir->decrement+SteerMid>Steer_MAX)
+    SteerSetAngle(Steer_MAX);
+  else if(Dir->decrement+SteerMid<Steer_MIN)
+    SteerSetAngle(Steer_MIN);
+  else
+    SteerSetAngle(SteerMid+Dir->decrement);
   
 }
 void DirSetSpeed(struct DirController *Dir,int SetSpeed)
@@ -211,6 +150,15 @@ void DirSetSpeed(struct DirController *Dir,int SetSpeed)
   Dir->SetSpeed=SetSpeed;
 }
 
+void SetSteerAngle(int Duty)
+{
+    if(Duty>Steer_MAX)
+      pwm_duty(PWM4_MODULE2_CHA_C30,Steer_MAX);
+    else if(Duty<Steer_MIN)
+      pwm_duty(PWM4_MODULE2_CHA_C30,Steer_MIN);
+    else
+      pwm_duty(PWM4_MODULE2_CHA_C30,Duty);
+}
 
 int Filter(int PastValue,int NextValue)//限幅加滑动平均
 {
