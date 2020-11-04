@@ -1,7 +1,8 @@
 #include "motor_controller.h"
-const int MotorKP=100*0.7;
-const int MotorKI=37*0.65;
-const int MotorKD=10;
+#define ABS
+const int MotorKP=50;
+const int MotorKI=30*0.65;
+const int MotorKD=60;
 const int DirKP=8;
 const int DirKI=0;
 const int DirKD=0;
@@ -15,6 +16,7 @@ int LeftForwordMotorSpeed=0;
 int LeftBackwordMotorSpeed=0;
 int RightForwordMotorSpeed=0;
 int RightBackwordMotorSpeed=0;//编码器所得值
+int ABSValue=5;
 int LeftPhototube=0;
 int MidPhototube=0;
 int RightPhototube=0;
@@ -53,17 +55,17 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
   Which->Integral+=Which->Error;
   //加积分限
   
-  if(Which->Integral>2000)
-    Which->Integral=2000;
-  if(Which->Integral<-2000)
-    Which->Integral=-2000;
+  if(Which->Integral>1500)
+    Which->Integral=1500;
+  if(Which->Integral<-1500)
+    Which->Integral=-1500;
       
   Which->result=Which->KP*Which->Error+Which->KI*Which->Integral+Which->KD*(Which->Error-Which->LastError);
   
-  if(Which->result<=-40000)
-    Which->result=-40000;
-  if(Which->result>=40000)
-    Which->result=40000;
+  if(Which->result<=-30000)
+    Which->result=-30000;
+  if(Which->result>=30000)
+    Which->result=30000;
   if(Which->result>0)
   {
     pwm_duty(Which->ForwordPWMPort,Which->result);
@@ -154,39 +156,53 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
     return ;
   }
   
-  if(Dir->decrement>300)
-    Dir->decrement=300;
-  if(Dir->decrement<-300)
-    Dir->decrement=-300;
+  if(Dir->decrement>MostDecrement)
+    Dir->decrement=MostDecrement;
+  if(Dir->decrement<-MostDecrement)
+    Dir->decrement=-MostDecrement;
   //偏差过大进行限幅
   
   if(Dir->decrement>0)//右偏左减速右加速
   {
-    if(Dir->SetSpeed-Dir->decrement/2>15)//最低限速
+#ifdef ABS
+    if(Dir->SetSpeed-Dir->decrement/2>ABSValue)//最低限速
     {
       MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
       MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
     }
     else
     {
-      MotorSetSpeed(Dir->LeftForwordMotor,15);
-      MotorSetSpeed(Dir->LeftBackwordMotor,15);
+      MotorSetSpeed(Dir->LeftForwordMotor,ABSValue);
+      MotorSetSpeed(Dir->LeftBackwordMotor,ABSValue);
     }
+#endif
+    
+#ifndef ABS
+    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
+#endif
     MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
     MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
   }
   if(Dir->decrement<0)//左偏左加速
   {
-    if(Dir->SetSpeed+Dir->decrement/2>15)//最低限速
+#ifdef ABS
+    if(Dir->SetSpeed+Dir->decrement/2>ABSValue)//最低限速
     {
       MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
       MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
     }
     else
     {
-      MotorSetSpeed(Dir->RightForwordMotor,15);
-      MotorSetSpeed(Dir->RightBackwordMotor,15);
+      MotorSetSpeed(Dir->RightForwordMotor,ABSValue);
+      MotorSetSpeed(Dir->RightBackwordMotor,ABSValue);
     }
+#endif
+    
+#ifndef ABS
+    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
+#endif
     MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
     MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
   }

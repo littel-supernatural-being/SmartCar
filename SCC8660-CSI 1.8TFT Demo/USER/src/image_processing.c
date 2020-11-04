@@ -25,10 +25,8 @@ void ImageProcessing()
   else
     scc8660_csi_finish_flag=false;
   
-  //GetGrayImage();//先获得灰度图
-  //Threshold=OtsuThreshold();//大津算法获得阈值
   GetBinAndTerImageDirect(Threshold);//二和三值化
-  DetectGameStatus();//判断比赛状况
+  //DetectGameStatus();//判断比赛状况
   FindMidLine();//根据二值图进行中线寻找
   
 }
@@ -179,7 +177,7 @@ int FindMidLineInRow(int Row,int LastMidLineCol)//LastMidLineCol为上一次中线所在
   return JumpRecorder[MidLineIndex][2];
 }
 //Ready(检测是否起跑)->Start(设定目标速度)->Playing(跑圈，检测圈数)->End(停下)
-void DetectGameStatus()
+/*void DetectGameStatus()
 {
   if(bin_image_finish_flag==false)
     return ;
@@ -199,17 +197,16 @@ void DetectGameStatus()
   
   else if(GameStatus==Playing&&CountOfTurn==3)
     GameStatus=End;
-}
+}*/
 
 
 
-/*
-Findslop函数用来判断是否即将进入元素
-需要定义一个全局变量 slop=0
-slop为0表示未进入元素；slop为2表示即将进入元素
-在调用完这个函数以后，需要将slop置0！
-*/
-void FindSlop()
+
+//Findslop函数用来判断是否即将进入元素
+//需要定义一个全局变量 slop=0
+//slop为0表示未进入元素；slop为2表示即将进入元素
+//在调用完这个函数以后，需要将slop置0！
+/*void FindSlop()
 {
   if(ter_image_finish_flag==false)
     return;
@@ -228,11 +225,11 @@ void FindSlop()
     }      
 }
 
-/*
-Findstop函数用来判断是否即将进入元素
-需要定义一个全局变量 stop=0
-stop<9表示未停止；stop=9表示需要停止
-*/
+
+//Findstop函数用来判断是否即将进入元素
+//需要定义一个全局变量 stop=0
+//stop<9表示未停止；stop=9表示需要停止
+
 void FindStop()
 {
   int i;
@@ -248,11 +245,11 @@ void FindStop()
   if(count1==19 && count2<19)
   Stop=Stop+1;
 }
- /*
-Findstart函数用来判断是否开始比赛
-需要定义一个全局变量 start=0
-start=0表示未开始；stop=1表示开始
-*/
+ 
+//Findstart函数用来判断是否开始比赛
+//需要定义一个全局变量 start=0
+//start=0表示未开始；stop=1表示开始
+
 void FindStart()
 {
   int count=0;
@@ -267,7 +264,7 @@ void FindStart()
   }
   if(count<19100)
     start=1;
-}
+}*/
 
 ///////底层算法///////
 
@@ -373,34 +370,3 @@ int OtsuThreshold()//大津算法
   }
   return T;
 }
-
-
-/*void ImageFilter(uchar* data, int width, int height)
-{
-  int i, j, index, sum;
-  int templates[9] = { 1, 2, 1,
-	               2, 4, 2,
-	               1, 2, 1 };
-  sum = height * width * sizeof(uchar);
-  uchar *tmpdata = (uchar*)malloc(sum);
-  memcpy((char*)tmpdata,(char*)data, sum);
-  for(i = 1;i < height - 1;i++)
-  {
-    for(j = 1;j < width - 1;j++)
-    {
-      index = sum = 0;
-      for(int m = i - 1;m < i + 2;m++)
-      {
-        for(int n = j - 1; n < j + 2;n++)
-        {
-          sum +=
-20	                        tmpdata[m * width + n] *
-21	                        templates[index++];
-22	                }
-23	            }
-24	            data[i * width + j] = sum / 16;
-25	        }
-26	    }
-27	    free(tmpdata);
-28	}
-}*/

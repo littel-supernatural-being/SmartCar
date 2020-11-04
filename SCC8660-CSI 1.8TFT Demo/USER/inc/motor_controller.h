@@ -46,6 +46,7 @@ extern int LeftForwordMotorSpeed;
 extern int LeftBackwordMotorSpeed;
 extern int RightForwordMotorSpeed;
 extern int RightBackwordMotorSpeed;//编码器所得值
+extern int ABSValue;
 extern struct DirController dircontroller;
 
 int GetMotorSpeed(int Which);
