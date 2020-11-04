@@ -1,12 +1,12 @@
 #include "motor_controller.h"
-#define ABS
-const int MotorKP=50;
-const int MotorKI=30*0.65;
-const int MotorKD=60;
-const int DirKP=8;
+#define ABS1
+const int MotorKP=60;
+const int MotorKI=37*0.65;
+const int MotorKD=30;
+const int DirKP=4.7;
 const int DirKI=0;
 const int DirKD=0;
-const int MostDecrement=400;//最大差速
+const int MostDecrement=800;//最大差速
 struct MotorController LeftForwordMotor;
 struct MotorController LeftBackwordMotor;
 struct MotorController RightForwordMotor;
@@ -17,7 +17,7 @@ int LeftForwordMotorSpeed=0;
 int LeftBackwordMotorSpeed=0;
 int RightForwordMotorSpeed=0;
 int RightBackwordMotorSpeed=0;//编码器所得值
-int ABSValue=5;
+int ABSValue=-0;
 
 void MotorInit(struct MotorController *Which,int FPWMPort,int BPWMPort,int Speed)//电机初始化
 {
@@ -53,17 +53,17 @@ void MotorErrorUpdata(struct MotorController *Which,int MeasureValue) //返回输入
   Which->Integral+=Which->Error;
   //加积分限
   
-  if(Which->Integral>1500)
-    Which->Integral=1500;
-  if(Which->Integral<-1500)
-    Which->Integral=-1500;
+  if(Which->Integral>2000)
+    Which->Integral=2000;
+  if(Which->Integral<-2000)
+    Which->Integral=-2000;
       
   Which->result=Which->KP*Which->Error+Which->KI*Which->Integral+Which->KD*(Which->Error-Which->LastError);
   
-  if(Which->result<=-30000)
-    Which->result=-30000;
-  if(Which->result>=30000)
-    Which->result=30000;
+  if(Which->result<=-40000)
+    Which->result=-40000;
+  if(Which->result>=40000)
+    Which->result=40000;
   if(Which->result>0)
   {
     pwm_duty(Which->ForwordPWMPort,Which->result);
@@ -176,11 +176,11 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
 #endif
     
 #ifndef ABS
-    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
-    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/3);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/3);
 #endif
-    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
-    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement*2/3);
+    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement*2/3);
   }
   if(Dir->decrement<0)//左偏左加速
   {
@@ -198,11 +198,11 @@ void DirErrorUpdata(struct DirController *Dir,int MeasureValue)
 #endif
     
 #ifndef ABS
-    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/2);
-    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/2);
+    MotorSetSpeed(Dir->RightForwordMotor,Dir->SetSpeed+Dir->decrement/3);
+    MotorSetSpeed(Dir->RightBackwordMotor,Dir->SetSpeed+Dir->decrement/3);
 #endif
-    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement/2);
-    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement/2);
+    MotorSetSpeed(Dir->LeftForwordMotor,Dir->SetSpeed-Dir->decrement*2/3);
+    MotorSetSpeed(Dir->LeftBackwordMotor,Dir->SetSpeed-Dir->decrement*2/3);
   }
   
 }

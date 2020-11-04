@@ -38,7 +38,7 @@
 //打开新的工程或者工程移动了位置务必执行以下操作
 //第一步 关闭上面所有打开的文件
 //第二步 project  clean  等待下方进度条走完
-#define DebugMotor1
+#define DebugMotor
 #define DebugImage1
 #define Debug1
 #define TestMotor1
@@ -79,7 +79,7 @@ int main(void)
        {
          lcd_clear(WHITE);
          scc8660_csi_finish_flag = 0;
-         GetBinImageDirect(Threshold);
+         GetBinAndTerImageDirect(Threshold);
          lcd_displayimage8660_zoom(BinImage[0],SCC8660_CSI_PIC_W,SCC8660_CSI_PIC_H,160,128);
          FindMidLine();
        }
@@ -96,13 +96,13 @@ int main(void)
        if(GameStatus==Start)//开始
        {
 #ifdef DebugMotor
-         MotorSetSpeed(&LeftForwordMotor,120);
-         MotorSetSpeed(&RightForwordMotor,120);
+         MotorSetSpeed(&LeftForwordMotor,0);
+         MotorSetSpeed(&RightForwordMotor,0);
          MotorSetSpeed(&LeftBackwordMotor,120);
          MotorSetSpeed(&RightBackwordMotor,120);
 #endif
 #ifndef DebugMotor
-         DirSetSpeed(&dircontroller,80);
+         DirSetSpeed(&dircontroller,25);
          
 #endif
          GameStatus=Playing;
@@ -146,7 +146,7 @@ void MyInit()
     pit_init();
     uart_init(USART_1,9600,UART1_TX_B12,UART1_RX_B13);  
     PhotoTubeInit();
-    pit_interrupt_ms(PIT_CH1,50);//用PIT一号端口设置200ms的中断
+    pit_interrupt_ms(PIT_CH1,20);//用PIT一号端口设置20ms的中断
     lcd_showstr(0,0,"SEEKFREE SCC8660");
     lcd_showstr(0,1,"Initializing...");
     lcd_clear(WHITE);

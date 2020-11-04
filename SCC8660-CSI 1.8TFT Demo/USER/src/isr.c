@@ -19,10 +19,9 @@
 
 #include "headfile.h"
 #include "isr.h"
-#define DebugPIDWhithUpMoniter1
+#define DebugPIDWhithUpMoniter
 
 
-int count=0;
 void CSI_IRQHandler(void)
 {
     CSI_DriverIRQHandler();     //调用SDK自带的中断函数 这个函数最后会调用我们设置的回调函数
